@@ -7,7 +7,8 @@ import numpy as np
 class GUI(Cloning):
 
     def __init__(self, title = "Image Loader"):
-
+        
+        super().__init__() 
         self.master = tk.Tk()
         self.master.withdraw()
         self.master.title(title)
