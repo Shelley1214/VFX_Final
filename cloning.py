@@ -12,6 +12,7 @@ class Cloning:
         self.target_image = []
         self.pts = []
 
+    # ref: https://github.com/Tony-Tseng/vfx_final_project
     def seamlessClone(self, center):
 
         source_image = np.array(self.source_image, dtype=np.float64)
@@ -29,6 +30,7 @@ class Cloning:
         # MVC
         Lambda = np.zeros(( inner_pixel.shape[0], boundary.shape[0]-1))
         for i, (r, c) in enumerate(inner_pixel):
+
             vec =  boundary - [c, r] 
             a_vec = vec [0:-1, :]
             b_vec = vec [1:,:]
@@ -39,8 +41,8 @@ class Cloning:
             a_tan = np.r_[tan_val[-1], tan_val[0:-1]]
             b_tan = tan_val
             w = (a_tan + b_tan) / np.linalg.norm(a_vec, axis=1)
-            w /= np.sum(w)
             Lambda[i, :] = w
+        Lambda /= Lambda.sum(axis=1, keepdims=True)
 
         # boundary difference
         offset =  center -  (np.mean(boundary, axis=0, dtype=np.int))
