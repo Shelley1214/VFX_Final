@@ -42,7 +42,6 @@ class GUI(Cloning):
 
         self.canvas.bind("<Button-1>", self.source_click)
         self.canvas1.bind("<Button-1>", self.target_click)
-        self.pts = []
         self.line = []
         self.load_source_image = False
         self.load_target_image = False
@@ -74,7 +73,7 @@ class GUI(Cloning):
            event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
             print("position out of range")
             return
-        self.result = self.seamlessClone(np.array(self.source_image), np.array(self.target_image), np.array(self.pts),  ( event.x, event.y))
+        self.result = self.seamlessClone(( event.x, event.y))
         self.show_clonning()
         
     def source_click(self,event):
@@ -144,9 +143,8 @@ class GUI(Cloning):
         
         # np.save('border', self.pts)
         w, h = self.target.width(),self.target.height()
-        # TODO: MVC
-        self.result = self.seamlessClone(np.array(self.source_image), np.array(self.target_image), np.array(self.pts),  (w//2, h//2))
+
+        # Clonning
+        self.result = self.seamlessClone( (w//2, h//2))
+        # self.result = self.OpenCV_Cloning((w//2, h//2))
         self.show_clonning()
-
-        
-
