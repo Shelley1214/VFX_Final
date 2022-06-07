@@ -6,7 +6,7 @@ import numpy as np
 
 class GUI(Cloning):
 
-    def __init__(self, title = "Image Loader"):
+    def __init__(self, title = "Image Loader", mode = "cv2"):
 
         self.master = tk.Tk()
         self.master.withdraw()
@@ -46,6 +46,8 @@ class GUI(Cloning):
         self.load_source_image = False
         self.load_target_image = False
 
+        self.mode = mode
+
     def QuickStart(self):
         target = "image/target.jpeg"
         source = "image/source.jpeg"
@@ -67,13 +69,22 @@ class GUI(Cloning):
         for i in range(len(self.pts)-1):
             self.line.append(self.canvas.create_line(self.pts[i][0], self.pts[i][1], self.pts[i+1][0], self.pts[i+1][1],fill="red", width=1))
 
+    def image_cloniing(self, center):
+        if self.mode == "cv2":
+            result = self.OpenCV_Cloning(center)
+        elif self.mode == "mvc":
+            result = self.seamlessClone(center)
+        else:
+            result = self.seamlessClone_mesh(center)
+        return result
+
     def target_click(self, event):
         print ("[target] clicked at", event.x, event.y)
         if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
            event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
             print("position out of range")
             return
-        self.result = self.seamlessClone(( event.x, event.y))
+        self.result = self.image_cloniing(( event.x, event.y))
         self.show_clonning()
         
     def source_click(self,event):
@@ -145,6 +156,5 @@ class GUI(Cloning):
         w, h = self.target.width(),self.target.height()
 
         # Clonning
-        self.result = self.seamlessClone( (w//2, h//2))
-        # self.result = self.OpenCV_Cloning((w//2, h//2))
+        self.result = self.image_cloniing( (w//2, h//2))
         self.show_clonning()
