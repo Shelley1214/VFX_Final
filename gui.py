@@ -80,11 +80,12 @@ class GUI(Cloning):
 
     def target_click(self, event):
         print ("[target] clicked at", event.x, event.y)
-        if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
-           event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
-            print("position out of range")
-            return
-        self.result = self.image_cloniing(( event.x, event.y))
+        if self.mode == "cv2":
+            if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
+            event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
+                print("position out of range")
+                return
+        self.result = self.image_cloniing(np.array([event.x, event.y]))
         self.show_clonning()
         
     def source_click(self,event):
@@ -135,6 +136,7 @@ class GUI(Cloning):
     def clear(self):
         if len(self.line) != 0: 
             self.canvas.delete('all')
+            self.line = []
             self.pts = []
             w, h = self.source.width(),self.source.height()
             self.canvas.config(width = w, height = h)
@@ -143,10 +145,11 @@ class GUI(Cloning):
     def undo(self):
         if len(self.line) != 0: 
             self.canvas.delete(self.line.pop())
-            self.pts.pop()
+            if len(self.pts) != 0:
+                self.pts.pop()
         
     def done(self):
-        if len(self.line) == 0: 
+        if len(self.line) <= 3: 
             return
 
         self.line.append(self.canvas.create_line(self.pts[-1][0], self.pts[-1][1], self.pts[0][0], self.pts[0][1],fill="red", width=1))
@@ -156,5 +159,5 @@ class GUI(Cloning):
         w, h = self.target.width(),self.target.height()
 
         # Clonning
-        self.result = self.image_cloniing( (w//2, h//2))
+        self.result = self.image_cloniing(np.array([w//2, h//2]))
         self.show_clonning()
