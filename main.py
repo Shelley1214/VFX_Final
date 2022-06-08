@@ -23,7 +23,7 @@ def parse_args():
         "--video_file",
         type=str,
         help="Path of the video.",
-        default="./video/Bear_orig.avi",
+        default="./image/Bear_orig.avi",
     )
 
 
