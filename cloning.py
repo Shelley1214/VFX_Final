@@ -7,10 +7,10 @@ import matplotlib.tri as mtri
 
 class Cloning:
 
-    def __init__(self):
-        self.source_image = []
-        self.target_image = []
-        self.pts = []
+    def __init__(self, source_image, target_image, pts):
+        self.source_image = source_image
+        self.target_image = target_image
+        self.pts = pts
 
     def in_image(self, boundary, shape):
         index = np.where((boundary[:, 1] >= 0) & (boundary[:, 0] >= 0) & (boundary[:, 1] < shape[0]) & (boundary[:, 0] < shape[1]))[0]

@@ -68,7 +68,7 @@ def video_track(video_file):
     old_gray = cv2.cvtColor(frames[0], cv2.COLOR_RGB2GRAY)
     corners = cv2.goodFeaturesToTrack(old_gray, mask = None, **feature_param)#cornersGet(frames[0])#, bboxs[0])
     
-    
+    # TODO: clone = Cloning(source_image, target_image, pts)
     
     for i in range(1, frame_num):
         old_gray = cv2.cvtColor(frames[i-1], cv2.COLOR_RGB2GRAY)
@@ -84,6 +84,8 @@ def video_track(video_file):
             new_corners.append((int(x), int(y)))
         
         corners = cv2.goodFeaturesToTrack(new_gray, mask = None, **feature_param)#cornersGet(frames[i])
+
+        # TODO: clone.OpenCV_Cloning(center)
         
     cv2.destroyAllWindows()
 
