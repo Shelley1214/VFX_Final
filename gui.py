@@ -13,6 +13,7 @@ class GUI(Cloning):
         self.master.title(title)
         self.canvas = tk.Canvas(self.master)
         self.canvas.grid(row = 1, column = 0)
+        self.canvas_shape = 600
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
         self.image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
@@ -59,21 +60,23 @@ class GUI(Cloning):
         source = "image/source.jpeg"
         self.source_image = Image.open(source)
         self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
-        w, h = self.source.width(),self.source.height()
-        self.canvas.config(width = w, height = h)
-        self.canvas.create_image((0,0), image = self.source, anchor = tk.NW)
+        sw, sh = self.source.width(),self.source.height()
+        self.canvas.config(width = self.canvas_shape, height = sh)
+        self.canvas.create_image((self.canvas_shape//2, sh//2), image = self.source, anchor = tk.CENTER)
         self.load_source_image = True
 
         self.target_image = Image.open(target)
         self.target = ImageTk.PhotoImage(self.target_image,  master = self.master)
-        w, h = self.target.width(),self.target.height()
-        self.canvas1.config(width = w, height = h)
+        tw, th = self.target.width(),self.target.height()
+        self.canvas1.config(width = tw, height = th)
         self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
         self.load_target_image = True
         self.pts = np.load('border.npy')
 
         for i in range(len(self.pts)-1):
-            self.line.append(self.canvas.create_line(self.pts[i][0], self.pts[i][1], self.pts[i+1][0], self.pts[i+1][1],fill="red", width=1))
+            offset = self.canvas_shape // 2 - sw // 2
+            points = [self.pts[i][0] + offset, self.pts[i][1], self.pts[i+1][0] + offset, self.pts[i+1][1]]
+            self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
 
     def image_cloniing(self, center):
         if self.mode == "cv2":
@@ -84,30 +87,33 @@ class GUI(Cloning):
             result = self.seamlessClone_mesh(center)
         return result
 
-    def zoom_in(self):
-        if self.load_source_image and self.scale <= 1.3:
-            w, h = self.source.width(),self.source.height()
-            self.scale = 1.05
-            self.source_image = self.source_image.resize((int(w * self.scale), int(h * self.scale)))
-            self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
-            w, h = self.source.width(),self.source.height()
-            self.canvas.config(width = w, height = h)
-            self.canvas.create_image((0,0), image = self.source, anchor = tk.NW)
+    def scale_source_image(self):
+        w, h = self.source.width(),self.source.height()
+        self.source_image = self.source_image.resize((int(w * self.scale), int(h * self.scale)))
+        self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
+        w, h = self.source.width(),self.source.height()
+        self.canvas.config(width = self.canvas_shape, height = h)
+        self.canvas.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
 
-            # if len(self.pts) != 0:
-            #     self.pts = self.pts * self.scale
-            #     for i in range(len(self.pts)-1):
-            #         self.line.append(self.canvas.create_line(self.pts[i][0], self.pts[i][1], self.pts[i+1][0], self.pts[i+1][1],fill="red", width=1))
+        if len(self.pts) != 0:
+            self.pts = (self.pts * self.scale).astype(int)
+            for l in self.line:
+                self.canvas.delete(l)
+            self.line = []
+            for i in range(len(self.pts)-1):
+                offset = self.canvas_shape // 2 - w // 2
+                points = [self.pts[i][0] + offset, self.pts[i][1], self.pts[i+1][0] + offset, self.pts[i+1][1]]
+                self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
+
+    def zoom_in(self):
+        if self.load_source_image:
+            self.scale = 1.05
+            self.scale_source_image()
 
     def zoom_out(self):
-        if self.load_source_image and self.scale >= 0.5:
-            w, h = self.source.width(),self.source.height()
+        if self.load_source_image:
             self.scale = 0.95
-            self.source_image = self.source_image.resize((int(w * self.scale), int(h * self.scale)))
-            self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
-            w, h = self.source.width(),self.source.height()
-            self.canvas.config(width = w, height = h)
-            self.canvas.create_image((0,0), image = self.source, anchor = tk.NW)
+            self.scale_source_image()
 
     def target_click(self, event):
         print ("[target] clicked at", event.x, event.y)
@@ -125,20 +131,20 @@ class GUI(Cloning):
             return
 
         print ("[source] clicked at", event.x, event.y)
+        w = self.source.width()
+        offset = self.canvas_shape // 2 - w // 2
         if len(self.pts) == 0:
             x1, y1 = ( event.x - 1 ), ( event.y - 1 )
             x2, y2 = ( event.x + 1 ), ( event.y + 1 )
             self.line.append(self.canvas.create_oval( x1, y1, x2, y2, fill = "red", width=1 ))
-            self.pts = np.vstack((self.pts, [event.x, event.y]))
-            # self.pts.append([event.x, event.y])
+            self.pts = np.vstack((self.pts, [event.x - offset, event.y]))
             return
 
-        x1 = self.pts[-1][0]
+        x1 = self.pts[-1][0] + offset
         y1 = self.pts[-1][1]
         x2 = event.x
         y2 = event.y
-        self.pts = np.vstack((self.pts, [event.x, event.y]))
-        # self.pts.append([event.x, event.y])
+        self.pts = np.vstack((self.pts, [event.x - offset, event.y]))
         self.line.append(self.canvas.create_line(x1,y1,x2,y2,fill="red", width=1))
 
     def choose_target_image(self):
@@ -162,18 +168,17 @@ class GUI(Cloning):
             self.source_image = Image.open(image_name)
             self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
             w, h = self.source.width(),self.source.height()
-            self.canvas.config(width = w, height = h)
-            self.canvas.create_image((0,0), image = self.source, anchor = tk.NW)
+            self.canvas.config(width = self.canvas_shape, height = h)
+            self.canvas.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
             self.load_source_image = True
 
     def clear(self):
         if len(self.line) != 0: 
-            self.canvas.delete('all')
+            # self.canvas.delete('all')
+            for l in self.line:
+                self.canvas.delete(l)
             self.line = []
-            self.pts = np.empty((0, 2))
-            w, h = self.source.width(),self.source.height()
-            self.canvas.config(width = w, height = h)
-            self.canvas.create_image((0,0), image = self.source, anchor = tk.NW)
+            self.pts = np.empty((0, 2), dtype=int)
         
     def undo(self):
         if len(self.line) != 0: 
@@ -184,9 +189,10 @@ class GUI(Cloning):
     def done(self):
         if len(self.line) <= 3: 
             return
-
-        self.line.append(self.canvas.create_line(self.pts[-1][0], self.pts[-1][1], self.pts[0][0], self.pts[0][1],fill="red", width=1))
-        # self.pts.append(self.pts[0])
+        
+        w = self.source.width()
+        offset = self.canvas_shape // 2 - w // 2
+        self.line.append(self.canvas.create_line(self.pts[-1][0] + offset, self.pts[-1][1], self.pts[0][0] + offset, self.pts[0][1],fill="red", width=1))
         self.pts = np.vstack((self.pts, self.pts[0]))
         
         # np.save('border', self.pts)
