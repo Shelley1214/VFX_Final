@@ -174,7 +174,6 @@ class GUI(Cloning):
 
     def clear(self):
         if len(self.line) != 0: 
-            # self.canvas.delete('all')
             for l in self.line:
                 self.canvas.delete(l)
             self.line = []

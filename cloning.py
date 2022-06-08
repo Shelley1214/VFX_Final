@@ -31,12 +31,11 @@ class Cloning:
         inner_pixel = np.argwhere(src_mask == 255)
         
         # MVC
-        Lambda = np.zeros(( inner_pixel.shape[0], boundary.shape[0]-1))
+        Lambda = np.zeros(( inner_pixel.shape[0], boundary.shape[0]))
         for i, (r, c) in enumerate(inner_pixel):
-
             vec =  boundary - [c, r] 
-            a_vec = vec [0:-1, :]
-            b_vec = vec [1:,:]
+            a_vec = vec
+            b_vec = np.vstack((vec[1:], vec[0]))
             cosine_angle = np.sum(a_vec*b_vec, axis=1) / (np.linalg.norm(a_vec,axis=1) * np.linalg.norm(b_vec,axis=1))
             cosine_angle = np.clip(-1,cosine_angle,1)
             tan_val = np.tan(np.arccos(cosine_angle)/2)
@@ -50,11 +49,23 @@ class Cloning:
         # boundary difference
         offset =  center -  (np.mean(boundary, axis=0, dtype=np.int))
         target_boundary = boundary + offset
-        diff = target_image[target_boundary[:-1,1], target_boundary[:-1,0],:] - source_image[boundary[:-1,1], boundary[:-1,0],:]
+
+        in_image_idx = self.in_image(target_boundary, target_image.shape)
+        target_boundary = target_boundary[in_image_idx]
+        boundary = boundary[in_image_idx]
+        Lambda = Lambda[:, in_image_idx]
+
+        diff = target_image[target_boundary[:,1], target_boundary[:,0],:] - source_image[boundary[:,1], boundary[:,0],:]
 
         # interpolant
         index = offset + inner_pixel[:, [1,0]]
         R = np.dot(Lambda, diff)
+
+        in_image_idx = self.in_image(index, target_image.shape)
+        index = index[in_image_idx]
+        inner_pixel = inner_pixel[in_image_idx]
+        R = R[in_image_idx]
+
         target_image[ index[:,1], index[:,0], : ] = source_image[ inner_pixel[:,0], inner_pixel[:,1], : ] + R
         target_image = np.clip(0, target_image, 255)
 
