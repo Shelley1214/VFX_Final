@@ -35,5 +35,6 @@
 * Code
     * https://github.com/Tony-Tseng/vfx_final_project
     * https://github.com/MarcoForte/poisson-matting
+    * https://github.com/ZheyuanXie/KLT-Feature-Tracking
 * Paper
     * https://www.cs.huji.ac.il/~danix/mvclone/
