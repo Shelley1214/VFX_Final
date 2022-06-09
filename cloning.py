@@ -1,51 +1,41 @@
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
-
+from PIL import Image
 import triangle as  tr
 import matplotlib.tri as mtri
+import scipy.ndimage
+from wrap import MVC
+
 
 class Cloning:
 
     def __init__(self):
         self.source_image = []
         self.target_image = []
+        self.trimap_image = []
         self.pts = np.empty((0, 2), dtype=int)
 
     def in_image(self, boundary, shape):
         index = np.where((boundary[:, 1] >= 0) & (boundary[:, 0] >= 0) & (boundary[:, 1] < shape[0]) & (boundary[:, 0] < shape[1]))[0]
         return index
 
-    def seamlessClone(self, center):
+    def seamlessClone(self, center, mask=[]):
 
         source_image = np.array(self.source_image, dtype=np.float64)
         target_image = np.array(self.target_image, dtype=np.float64)
-        src_mask = np.zeros_like(source_image, dtype=np.uint8)
-        cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
-        src_mask = src_mask[:,:,0]
+        src_mask = mask.copy()
+        if mask == []:
+            src_mask = np.zeros_like(source_image, dtype=np.uint8)
+            cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
+            src_mask = src_mask[:,:,0]
        
         # boundary and cloning area
         boundary = cv.findContours(src_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
         boundary = np.append( boundary, [boundary[0,:]], axis=0)
         src_mask [ boundary[:,1] , boundary[:,0] ] = 0
         inner_pixel = np.argwhere(src_mask == 255)
-        
-        # MVC
-        Lambda = np.zeros(( inner_pixel.shape[0], boundary.shape[0]))
-        for i, (r, c) in enumerate(inner_pixel):
-            vec =  boundary - [c, r] 
-            a_vec = vec
-            b_vec = np.vstack((vec[1:], vec[0]))
-            cosine_angle = np.sum(a_vec*b_vec, axis=1) / (np.linalg.norm(a_vec,axis=1) * np.linalg.norm(b_vec,axis=1))
-            cosine_angle = np.clip(-1,cosine_angle,1)
-            tan_val = np.tan(np.arccos(cosine_angle)/2)
-
-            a_tan = np.r_[tan_val[-1], tan_val[0:-1]]
-            b_tan = tan_val
-            w = (a_tan + b_tan) / np.linalg.norm(a_vec, axis=1)
-            Lambda[i, :] = w
-        Lambda /= Lambda.sum(axis=1, keepdims=True)
-
+    
         # boundary difference
         offset =  center -  (np.mean(boundary, axis=0, dtype=np.int))
         target_boundary = boundary + offset
@@ -53,14 +43,14 @@ class Cloning:
         in_image_idx = self.in_image(target_boundary, target_image.shape)
         target_boundary = target_boundary[in_image_idx]
         boundary = boundary[in_image_idx]
-        Lambda = Lambda[:, in_image_idx]
-
         diff = target_image[target_boundary[:,1], target_boundary[:,0],:] - source_image[boundary[:,1], boundary[:,0],:]
 
+        # MVC
+        R= MVC(boundary, inner_pixel, diff, 3)
+        R = R.reshape((inner_pixel.shape[0],3))
+        
         # interpolant
         index = offset + inner_pixel[:, [1,0]]
-        R = np.dot(Lambda, diff)
-
         in_image_idx = self.in_image(index, target_image.shape)
         index = index[in_image_idx]
         inner_pixel = inner_pixel[in_image_idx]
@@ -72,13 +62,15 @@ class Cloning:
         return target_image.astype(np.uint8)
 
     
-    def seamlessClone_mesh(self, center):
+    def seamlessClone_mesh(self, center, mask=[]):
 
         source_image = np.array(self.source_image, dtype=np.float64)
         target_image = np.array(self.target_image, dtype=np.float64)
-        src_mask = np.zeros_like(source_image, dtype=np.uint8)
-        cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
-        src_mask = src_mask[:,:,0]
+        src_mask = mask.copy()
+        if mask == []:
+            src_mask = np.zeros_like(source_image, dtype=np.uint8)
+            cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
+            src_mask = src_mask[:,:,0]
        
         # boundary and cloning area
         boundary = cv.findContours(src_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
@@ -95,22 +87,6 @@ class Cloning:
         
         inner_mesh = mesh['vertices'][:, [1, 0]].astype(int)
 
-        # MVC
-        Lambda = np.zeros(( inner_mesh.shape[0], boundary.shape[0]))
-        for i, (r, c) in enumerate(inner_mesh):
-            vec =  boundary - [c, r] 
-            a_vec = vec
-            b_vec = np.vstack((vec[1:], vec[0]))
-            cosine_angle = np.sum(a_vec*b_vec, axis=1) / (np.linalg.norm(a_vec,axis=1) * np.linalg.norm(b_vec,axis=1))
-            cosine_angle = np.clip(-1,cosine_angle,1)
-            tan_val = np.tan(np.arccos(cosine_angle)/2)
-
-            a_tan = np.r_[tan_val[-1], tan_val[0:-1]]
-            b_tan = tan_val
-            w = (a_tan + b_tan) / np.linalg.norm(a_vec, axis=1)
-            Lambda[i, :] = w
-        Lambda /= Lambda.sum(axis=1, keepdims=True)
-
         # boundary difference
         offset =  center - (np.mean(boundary, axis=0, dtype=np.int))
         target_boundary = boundary + offset
@@ -118,12 +94,13 @@ class Cloning:
         in_image_idx = self.in_image(target_boundary, target_image.shape)
         target_boundary = target_boundary[in_image_idx]
         boundary = boundary[in_image_idx]
-        Lambda = Lambda[:, in_image_idx]
 
         diff = target_image[target_boundary[:, 1], target_boundary[:, 0], :] - source_image[boundary[:, 1], boundary[:, 0], :]
 
+        R = MVC(boundary, inner_mesh, diff, 3)
+        R = R.reshape((inner_mesh.shape[0],3))
+        
         # interpolant
-        R = np.dot(Lambda, diff)
         triang = mtri.Triangulation(inner_mesh[:, 1], inner_mesh[:, 0])
         
         index = offset + inner_pixel[:, [1,0]]
@@ -167,3 +144,61 @@ class Cloning:
         result = cv.seamlessClone( source_image, target_image, src_mask, center, cv.NORMAL_CLONE) 
         # cv.circle(result, center, 2, [255, 0, 0], 5)
         return result       
+
+
+    def matting(self,center):
+
+        source_image = np.array(self.source_image, dtype=np.uint8)
+        target_image = np.array(self.target_image, dtype=np.uint8)
+
+        gray_img = cv.cvtColor(source_image, cv.COLOR_RGB2GRAY) 
+        trimap_image = cv.cvtColor( np.array(self.trimap_image, dtype=np.uint8), cv.COLOR_RGB2GRAY)
+        mask = np.zeros_like(gray_img, dtype=np.uint8) + 255
+        mask [ trimap_image == 0 ] = 0
+        
+        boundary = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
+        trimap_image [ boundary[:,1] , boundary[:,0] ] = 0
+        boundary = np.append( boundary, [boundary[0,:]], axis=0)
+        offset =  center -  (np.mean(boundary, axis=0, dtype=np.int))
+        
+        fg = trimap_image == 255
+        bg = trimap_image == 0
+        unknown = True ^ np.logical_or(fg,bg)
+        alphaEstimate = fg.astype(np.float64) + 0.5 * unknown
+
+        # diff (Smooth F - B image)
+        fg_img = gray_img.astype(np.float64)*fg
+        bg_img = gray_img.astype(np.float64)*bg
+        approx_bg = cv.inpaint(bg_img.astype(np.uint8),(unknown+fg).astype(np.uint8)*255,3,cv.INPAINT_TELEA).astype(np.float64)
+        approx_fg = cv.inpaint(fg_img.astype(np.uint8),(unknown+bg).astype(np.uint8)*255,3,cv.INPAINT_TELEA).astype(np.float64)
+        
+        approx_diff = approx_fg - approx_bg
+        approx_diff = scipy.ndimage.gaussian_filter(approx_diff, 0.9)
+
+        I = gray_img.astype(np.float64) / approx_diff.astype(np.float64)
+        diff = (alphaEstimate - I)[ boundary[:-1,1], boundary[:-1,0] ]
+
+        # mvc
+        inner_pixel = np.argwhere(unknown)
+        R = MVC(boundary, inner_pixel, diff, 1)
+
+        # interpolant
+        alphaEstimate[ inner_pixel[:,0], inner_pixel[:,1] ] =  I[ inner_pixel[:,0], inner_pixel[:,1] ] + R
+        alphaEstimate [ alphaEstimate > 0.95 ] = 1
+        alphaEstimate [ alphaEstimate < 0.05] = 0
+        alpha =  alphaEstimate
+
+        # matting_cloning
+        result = self.seamlessClone_mesh(center, mask)
+
+        inner_pixel = np.argwhere(mask == 255)
+        index = offset + inner_pixel[:, [1,0]]
+        in_image_idx = self.in_image(index, target_image.shape)
+        index = index[in_image_idx]
+        inner_pixel = inner_pixel[in_image_idx]
+        matting_alpha = np.zeros_like(target_image, dtype=np.float64)
+        matting_alpha[ index[:,1], index[:,0], : ] = np.dstack((alpha, alpha, alpha))[ inner_pixel[:,0], inner_pixel[:,1], : ]
+
+        result = result * matting_alpha  + target_image * (1-matting_alpha)
+
+        return Image.fromarray(result.astype(np.uint8))

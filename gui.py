@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog as fido
 from PIL import ImageTk, Image
 from cloning import Cloning
@@ -8,32 +9,48 @@ class GUI(Cloning):
 
     def __init__(self, title = "Image Loader", mode = "cv2"):
 
+        super().__init__()
         self.master = tk.Tk()
         self.master.withdraw()
         self.master.title(title)
-        self.canvas = tk.Canvas(self.master)
+
+        self.tabControl = ttk.Notebook(self.master)
+        self.tab1 = ttk.Frame(self.tabControl) 
+        self.tabControl.add(self.tab1, text='Cloning') 
+        self.tabControl.pack(expand=1, fill="both")
+        self.tab2 = ttk.Frame(self.tabControl) 
+        self.tabControl.add(self.tab2, text='Matting')
+
+
+        self.canvas = tk.Canvas(self.tab1)
         self.canvas.grid(row = 1, column = 0)
         self.canvas_shape = 600
 
-        self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
+        self.image_button = tk.Button(self.tab1, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
         self.image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
 
-        self.settingButtons = tk.Frame(self.master)
+        self.settingButtons = tk.Frame(self.tab1)
         self.settingButtons.grid(row = 0, column = 0)
 
-        self.QuickStart = tk.Button(self.master, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
+        self.QuickStart_mat = tk.Button(self.tab2, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
+        self.QuickStart = tk.Button(self.tab1, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
         self.QuickStart.grid(row = 0, column = 1)
 
-        self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
+        self.image_button = tk.Button(self.tab1, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
         self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
-        self.canvas1 = tk.Canvas(self.master)
+        self.canvas1 = tk.Canvas(self.tab1)
         self.canvas1.grid(row = 1, column = 1)
+        self.settingButtons_mat = tk.Frame(self.tab2)
+        self.settingButtons_mat.grid(row = 0, column = 0)
 
         self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Undo", command = self.undo)
         self.button2 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Clear", command = self.clear)
         self.button3 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "Done", command = self.done)
         self.button4 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "+", command = self.zoom_in)
         self.button5 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "-", command = self.zoom_out)
+        self.button7 = tk.Button(self.settingButtons_mat, font = "Helvetica 12", text = "+", command = self.zoom_in)
+        self.button8 = tk.Button(self.settingButtons_mat, font = "Helvetica 12", text = "-", command = self.zoom_out)
+        self.button6 = tk.Button(self.settingButtons_mat, font = "Helvetica 12", text = "Matting", command = self.mat)
 
         self.button4.pack(side=tk.LEFT)
         self.button5.pack(side=tk.LEFT)
@@ -41,42 +58,116 @@ class GUI(Cloning):
         self.button2.pack(side=tk.LEFT)
         self.button3.pack(side=tk.LEFT)
         
+        self.canvas_mat = tk.Frame(self.tab2)
+        self.canvas_mat.grid(row = 1, column = 0)
 
+        self.canvas_1 = tk.Canvas(self.canvas_mat)
+        self.canvas_1.pack(fill='x')
+        self.canvas_2 = tk.Canvas(self.canvas_mat)
+        self.canvas_2.pack(fill='x')
+
+        self.source_image_button = tk.Frame(self.tab2)
+        self.source_image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
+
+        self.image_button1 = tk.Button(self.source_image_button, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
+        self.image_button1.pack(fill='x')
+        self.image_button2 = tk.Button(self.source_image_button, font = "Helvetica 12",text = "Choose Trimap Image", command = self.choose_trimap_image)
+        self.image_button2.pack(fill='x')
+
+
+        self.QuickStart_mat.grid(row = 0, column = 1)
+
+        self.image_button = tk.Button(self.tab2, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
+        self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
+        self.canvas1_mat = tk.Canvas(self.tab2)
+        self.canvas1_mat.grid(row = 1, column = 1)
+        self.canvas1_mat.bind("<Button-1>", self.target_click_mat)
+
+        
+        self.button7.pack(side=tk.LEFT)
+        self.button8.pack(side=tk.LEFT)
+        self.button6.pack(side=tk.LEFT)
+        self.master.update()
+        self.master.resizable(True, True)
+        self.master.deiconify()
+        
         self.master.update()
         self.master.resizable(True, True)
         self.master.deiconify()
 
         self.canvas.bind("<Button-1>", self.source_click)
         self.canvas1.bind("<Button-1>", self.target_click)
+        self.tabControl.bind("<ButtonRelease-1>", self.TabChanged)
+
         self.line = []
         self.load_source_image = False
         self.load_target_image = False
-
+        self.load_trimap_image = False
         self.mode = mode
+        self.mode_2 = 0
         self.scale = 1
 
+    def TabChanged(self,event=None):
+
+        self.load_source_image = False
+        self.load_target_image = False
+        if event.widget.tab('current')['text'] == "Matting":
+            self.mode_2 = 1
+            self.canvas.delete("all")
+            self.canvas1.delete("all")
+        else:
+            self.mode_2 = 0
+            self.load_trimap_image = False
+            self.canvas_1.delete("all")
+            self.canvas_2.delete("all")
+            self.canvas1_mat.delete("all")
+
+
     def QuickStart(self):
-        target = "image/target.jpeg"
-        source = "image/source.jpeg"
+
+        if self.mode_2 == 0:
+            target = "image/target.jpeg"
+            source = "image/source.jpeg"
+        else:
+            target = "image/background.jpeg"
+            source = "image/input.png"
+            trimap = "image/trimap.png"
+
         self.source_image = Image.open(source)
-        self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
+        self.source = ImageTk.PhotoImage(self.source_image)
         sw, sh = self.source.width(),self.source.height()
-        self.canvas.config(width = self.canvas_shape, height = sh)
-        self.canvas.create_image((self.canvas_shape//2, sh//2), image = self.source, anchor = tk.CENTER)
         self.load_source_image = True
 
         self.target_image = Image.open(target)
-        self.target = ImageTk.PhotoImage(self.target_image,  master = self.master)
+        self.target = ImageTk.PhotoImage(self.target_image)
         tw, th = self.target.width(),self.target.height()
-        self.canvas1.config(width = tw, height = th)
-        self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
         self.load_target_image = True
-        self.pts = np.load('border.npy')
 
-        for i in range(len(self.pts)-1):
-            offset = self.canvas_shape // 2 - sw // 2
-            points = [self.pts[i][0] + offset, self.pts[i][1], self.pts[i+1][0] + offset, self.pts[i+1][1]]
-            self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
+        if self.mode_2 == 0:
+
+            self.canvas.config(width = self.canvas_shape, height = sh)
+            self.canvas.create_image((self.canvas_shape//2, sh//2), image = self.source, anchor = tk.CENTER)
+            self.canvas1.config(width = tw, height = th)
+            self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
+            self.pts = np.load('border.npy')
+
+            for i in range(len(self.pts)-1):
+                offset = self.canvas_shape // 2 - sw // 2
+                points = [self.pts[i][0] + offset, self.pts[i][1], self.pts[i+1][0] + offset, self.pts[i+1][1]]
+                self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
+        else:
+            self.canvas_1.config(width = self.canvas_shape, height = sh)
+            self.canvas_1.create_image((self.canvas_shape//2, sh//2), image = self.source, anchor = tk.CENTER)
+        
+            self.trimap_image = Image.open(trimap)
+            self.trimap = ImageTk.PhotoImage(self.trimap_image)
+            w, h = self.trimap.width(),self.trimap.height()
+            self.canvas_2.config(width = self.canvas_shape, height = h)
+            self.canvas_2.create_image((self.canvas_shape//2, h//2), image = self.trimap, anchor = tk.CENTER)
+            self.load_target_image = True
+            self.canvas1_mat.config(width = tw, height = th)
+            self.canvas1_mat.create_image((0,0), image = self.target, anchor = tk.NW)
+
 
     def image_cloniing(self, center):
         if self.mode == "cv2":
@@ -92,18 +183,28 @@ class GUI(Cloning):
         self.source_image = self.source_image.resize((int(w * self.scale), int(h * self.scale)))
         self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
         w, h = self.source.width(),self.source.height()
-        self.canvas.config(width = self.canvas_shape, height = h)
-        self.canvas.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
 
-        if len(self.pts) != 0:
-            self.pts = (self.pts * self.scale).astype(int)
-            for l in self.line:
-                self.canvas.delete(l)
-            self.line = []
-            for i in range(len(self.pts)-1):
-                offset = self.canvas_shape // 2 - w // 2
-                points = [self.pts[i][0] + offset, self.pts[i][1], self.pts[i+1][0] + offset, self.pts[i+1][1]]
-                self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
+        if self.mode_2 == 1:
+            w, h = self.trimap.width(),self.trimap.height()
+            self.trimap_image = self.trimap_image.resize((int(w * self.scale), int(h * self.scale)))
+            self.trimap = ImageTk.PhotoImage(self.trimap_image,  master = self.master)
+            w, h = self.trimap.width(),self.trimap.height()
+            self.canvas_1.config(width = self.canvas_shape, height = h)
+            self.canvas_2.config(width = self.canvas_shape, height = h)
+            self.canvas_1.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
+            self.canvas_2.create_image((self.canvas_shape//2, h//2), image = self.trimap, anchor = tk.CENTER)
+        else:
+            self.canvas.config(width = self.canvas_shape, height = h)
+            self.canvas.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
+            if len(self.pts) != 0:
+                self.pts = (self.pts * self.scale).astype(int)
+                for l in self.line:
+                    self.canvas.delete(l)
+                self.line = []
+                for i in range(len(self.pts)-1):
+                    offset = self.canvas_shape // 2 - w // 2
+                    points = [self.pts[i][0] + offset, self.pts[i][1], self.pts[i+1][0] + offset, self.pts[i+1][1]]
+                    self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
 
     def zoom_in(self):
         if self.load_source_image:
@@ -116,6 +217,8 @@ class GUI(Cloning):
             self.scale_source_image()
 
     def target_click(self, event):
+        if not self.load_target_image:
+            return
         print ("[target] clicked at", event.x, event.y)
         if self.mode == "cv2":
             if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
@@ -125,11 +228,16 @@ class GUI(Cloning):
         self.result = self.image_cloniing(np.array([event.x, event.y]))
         self.show_clonning()
         
-    def source_click(self,event):
-        
-        if self.load_source_image == False:
+    def target_click_mat(self, event):
+        if not self.load_target_image:
             return
+        print ("[target] clicked at", event.x, event.y)
+        self.result = self.matting(( event.x, event.y))
+        self.show_clonning()
 
+    def source_click(self,event):
+        if not self.load_source_image :
+            return
         print ("[source] clicked at", event.x, event.y)
         w = self.source.width()
         offset = self.canvas_shape // 2 - w // 2
@@ -151,22 +259,26 @@ class GUI(Cloning):
         image_name = fido.askopenfilename(title = "Target image")
         if image_name:
             self.target_image = Image.open(image_name)
-            self.target = ImageTk.PhotoImage(self.target_image,  master = self.master)
+            self.target = ImageTk.PhotoImage(self.target_image )
             w, h = self.target.width(),self.target.height()
             self.canvas1.config(width = w, height = h)
             self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
             self.load_target_image = True
 
     def show_clonning(self):
-        self.result = Image.fromarray(self.result)
-        self.result = ImageTk.PhotoImage(self.result,  master = self.master)
-        self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
+        if self.mode_2 == 0:
+            self.result = Image.fromarray(self.result)
+            self.result = ImageTk.PhotoImage(self.result)
+            self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
+        else:
+            self.result_ = ImageTk.PhotoImage(self.result,  master = self.master)
+            self.canvas1_mat.create_image((0,0), image = self.result_, anchor = tk.NW)
 
     def choose_source_image(self):
         image_name = fido.askopenfilename(title = "Source image")
         if image_name:
             self.source_image = Image.open(image_name)
-            self.source = ImageTk.PhotoImage(self.source_image,  master = self.master)
+            self.source = ImageTk.PhotoImage(self.source_image)
             w, h = self.source.width(),self.source.height()
             self.canvas.config(width = self.canvas_shape, height = h)
             self.canvas.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
@@ -193,10 +305,23 @@ class GUI(Cloning):
         offset = self.canvas_shape // 2 - w // 2
         self.line.append(self.canvas.create_line(self.pts[-1][0] + offset, self.pts[-1][1], self.pts[0][0] + offset, self.pts[0][1],fill="red", width=1))
         self.pts = np.vstack((self.pts, self.pts[0]))
-        
-        # np.save('border', self.pts)
         w, h = self.target.width(),self.target.height()
 
         # Clonning
         self.result = self.image_cloniing(np.array([w//2, h//2]))
+        self.show_clonning()
+
+    def choose_trimap_image(self):
+        image_name = fido.askopenfilename(title = "Trimap image")
+        if image_name:
+            self.trimap_image = Image.open(image_name).convert('RGB')
+            self.trimap = ImageTk.PhotoImage(self.trimap_image)
+            w, h = self.trimap.width(),self.trimap.height()
+            self.canvas_2.config(width = w, height = h)
+            self.canvas_2.create_image((0,0), image = self.trimap, anchor = tk.NW)
+        self.load_trimap_image = True
+
+    def mat(self):
+        w, h = self.target.width(),self.target.height()
+        self.result = self.matting( (w//2, h//2))
         self.show_clonning()
