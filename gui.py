@@ -11,23 +11,26 @@ class GUI(Cloning):
 
         super().__init__()
         self.master = tk.Tk()
+
         self.master.withdraw()
         self.master.title(title)
-
         self.tabControl = ttk.Notebook(self.master)
-        self.tab1 = ttk.Frame(self.tabControl) 
+        self.tab1 = ttk.Frame(self.tabControl)
+        # self.tab1.grid_columnconfigure(0, weight=1)
         self.tabControl.add(self.tab1, text='Cloning') 
         self.tabControl.pack(expand=1, fill="both")
         self.tab2 = ttk.Frame(self.tabControl) 
         self.tabControl.add(self.tab2, text='Matting')
+        # self.tab2.grid_columnconfigure(0, weight=1)
 
-
+        self.error_message = tk.Label(self.tab1, text="", fg='red')
+        self.error_message.grid(row = 1, column = 0)
         self.canvas = tk.Canvas(self.tab1)
-        self.canvas.grid(row = 1, column = 0)
+        self.canvas.grid(row = 2, column = 0)
         self.canvas_shape = 600
 
         self.image_button = tk.Button(self.tab1, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
+        self.image_button.grid(row = 3, column = 0, sticky = tk.NSEW)
 
         self.settingButtons = tk.Frame(self.tab1)
         self.settingButtons.grid(row = 0, column = 0)
@@ -36,12 +39,14 @@ class GUI(Cloning):
         self.QuickStart = tk.Button(self.tab1, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
         self.QuickStart.grid(row = 0, column = 1)
 
+
         self.image_button = tk.Button(self.tab1, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
-        self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
+        self.image_button.grid(row = 3, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.tab1)
-        self.canvas1.grid(row = 1, column = 1)
+        self.canvas1.grid(row = 2, column = 1)
         self.settingButtons_mat = tk.Frame(self.tab2)
         self.settingButtons_mat.grid(row = 0, column = 0)
+
 
         self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Undo", command = self.undo)
         self.button2 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Clear", command = self.clear)
@@ -76,7 +81,6 @@ class GUI(Cloning):
 
 
         self.QuickStart_mat.grid(row = 0, column = 1)
-
         self.image_button = tk.Button(self.tab2, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
         self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
         self.canvas1_mat = tk.Canvas(self.tab2)
@@ -91,10 +95,6 @@ class GUI(Cloning):
         self.master.resizable(True, True)
         self.master.deiconify()
         
-        self.master.update()
-        self.master.resizable(True, True)
-        self.master.deiconify()
-
         self.canvas.bind("<Button-1>", self.source_click)
         self.canvas1.bind("<Button-1>", self.target_click)
         self.tabControl.bind("<ButtonRelease-1>", self.TabChanged)
@@ -106,10 +106,13 @@ class GUI(Cloning):
         self.mode = mode
         self.mode_2 = 0
         self.scale = 1
+        self.master.geometry('{0}x{1}+0+0'.format(self.master.winfo_screenwidth(), self.master.winfo_screenheight()))
+
+
 
     def TabChanged(self,event=None):
-
         self.load_source_image = False
+        self.master.geometry('{0}x{1}+0+0'.format(self.master.winfo_screenwidth(), self.master.winfo_screenheight()))
         self.load_target_image = False
         if event.widget.tab('current')['text'] == "Matting":
             self.mode_2 = 1
@@ -209,22 +212,24 @@ class GUI(Cloning):
     def zoom_in(self):
         if self.load_source_image:
             self.scale = 1.05
-            self.scale_source_image()
+            if self.source.width() * self.scale <= self.canvas_shape:
+                self.scale_source_image()
 
     def zoom_out(self):
         if self.load_source_image:
             self.scale = 0.95
-            self.scale_source_image()
+            if self.source.width() * self.scale >= 200:
+                self.scale_source_image()
 
     def target_click(self, event):
         if not self.load_target_image:
             return
         print ("[target] clicked at", event.x, event.y)
-        if self.mode == "cv2":
-            if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
-            event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
-                print("position out of range")
-                return
+        # if self.mode == "cv2":
+        #     if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
+        #     event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
+        #         print("position out of range")
+        #         return
         self.result = self.image_cloniing(np.array([event.x, event.y]))
         self.show_clonning()
         
@@ -261,18 +266,27 @@ class GUI(Cloning):
             self.target_image = Image.open(image_name)
             self.target = ImageTk.PhotoImage(self.target_image )
             w, h = self.target.width(),self.target.height()
-            self.canvas1.config(width = w, height = h)
-            self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
+            if self.mode_2 == 0:
+                self.canvas1.config(width = w, height = h)
+                self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
+            else:
+                self.canvas1_mat.config(width = w, height = h)
+                self.canvas1_mat.create_image((0,0), image = self.target, anchor = tk.NW)
+                
             self.load_target_image = True
 
     def show_clonning(self):
-        if self.mode_2 == 0:
-            self.result = Image.fromarray(self.result)
-            self.result = ImageTk.PhotoImage(self.result)
-            self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
-        else:
+        if self.mode_2 == 1:
             self.result_ = ImageTk.PhotoImage(self.result,  master = self.master)
             self.canvas1_mat.create_image((0,0), image = self.result_, anchor = tk.NW)
+        else:
+            if self.result is None:
+                self.error_message['text'] = 'ERROR operation!!'
+            else:  
+                self.result = Image.fromarray(self.result)
+                self.result = ImageTk.PhotoImage(self.result,  master = self.master)
+                self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
+                self.error_message['text'] = ''
 
     def choose_source_image(self):
         image_name = fido.askopenfilename(title = "Source image")
@@ -280,8 +294,13 @@ class GUI(Cloning):
             self.source_image = Image.open(image_name)
             self.source = ImageTk.PhotoImage(self.source_image)
             w, h = self.source.width(),self.source.height()
-            self.canvas.config(width = self.canvas_shape, height = h)
-            self.canvas.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
+            if self.mode_2 == 0:
+                self.canvas.config(width = self.canvas_shape, height = h)
+                self.canvas.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
+            else:
+                self.canvas_1.config(width = self.canvas_shape, height = h)
+                self.canvas_1.create_image((self.canvas_shape//2, h//2), image = self.source, anchor = tk.CENTER)
+                
             self.load_source_image = True
 
     def clear(self):
@@ -318,7 +337,7 @@ class GUI(Cloning):
             self.trimap = ImageTk.PhotoImage(self.trimap_image)
             w, h = self.trimap.width(),self.trimap.height()
             self.canvas_2.config(width = w, height = h)
-            self.canvas_2.create_image((0,0), image = self.trimap, anchor = tk.NW)
+            self.canvas_2.create_image((self.canvas_shape//2, h//2), image = self.trimap, anchor = tk.CENTER)
         self.load_trimap_image = True
 
     def mat(self):
