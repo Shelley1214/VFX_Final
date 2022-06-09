@@ -17,7 +17,6 @@ def get_bbox(video_file, click_center):
     bboxs = np.empty((frame_num,), dtype=np.ndarray)
     bboxs[0] = np.empty((4,2), dtype=float)
     bboxs[0] = np.array([[cx-50, cy-50],[cx+50, cy-50],[cx-50, cy+50],[cx+50, cy+50]]).astype(float)
-
     startXs, startYs = getFeatures(cv2.cvtColor( frames[0], cv2.COLOR_RGB2GRAY), bboxs[0])
     for i in range(1, frame_num):
        print('Processing Frame',i)

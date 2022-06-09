@@ -6,7 +6,7 @@ from skimage import transform as tf
 
 # ref: https://github.com/ZheyuanXie/KLT-Feature-Tracking/blob/master/objectTracking.py
 
-def getFeatures(img,bbox):
+def getFeatures(img, bbox):
     (xmin, ymin, boxw, boxh) = cv2.boundingRect(bbox.astype(int))
     roi = img[ymin:ymin+boxh,xmin:xmin+boxw]
     corner_response = corner_harris(roi)
@@ -18,7 +18,7 @@ def getFeatures(img,bbox):
     y = coordinates[:,0].reshape(-1,1)
     return x,y
 
-def estimateAllTranslation(startXs,startYs,img1,img2):
+def estimateAllTranslation(startXs, startYs, img1, img2):
     I = cv2.cvtColor(img1,cv2.COLOR_RGB2GRAY)
     I = cv2.GaussianBlur(I,(5,5),0.2)
     Iy, Ix = np.gradient(I.astype(float))
@@ -34,7 +34,7 @@ def estimateAllTranslation(startXs,startYs,img1,img2):
     newYs = np.reshape(newYs, startYs.shape)
     return newXs, newYs
 
-def estimateFeatureTranslation(startX,startY,Ix,Iy,img1,img2, WINDOW_SIZE = 25):
+def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2, WINDOW_SIZE = 25):
     X=startX
     Y=startY
     mesh_x,mesh_y=np.meshgrid(np.arange(WINDOW_SIZE),np.arange(WINDOW_SIZE))

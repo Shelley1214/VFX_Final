@@ -20,24 +20,26 @@ class GUI_video():
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
         self.image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
 
-        self.settingButtons = tk.Frame(self.master)
-        self.settingButtons.grid(row = 0, column = 0)
-
-        self.QuickStart = tk.Button(self.master, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
-        self.QuickStart.grid(row = 0, column = 1)
-        self.GenerateVideo = tk.Button(self.master, font = "Helvetica 12",text = "Generate Video", command = self.GenerateVideo)
-        self.GenerateVideo.grid(row = 0, column = 1, sticky = tk.W)
+        self.settingButtons_l = tk.Frame(self.master)
+        self.settingButtons_l.grid(row = 0, column = 0)
+        
+        self.settingButtons_r = tk.Frame(self.master)
+        self.settingButtons_r.grid(row = 0, column = 1)
+        self.QuickStart = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
+        self.QuickStart.pack(side=tk.LEFT)
+        self.GenerateVideo = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "Generate Video", command = self.GenerateVideo)
+        self.GenerateVideo.pack(side=tk.LEFT)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Video", command = self.choose_target_image)
         self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
         self.canvas1.grid(row = 1, column = 1)
 
-        self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Undo", command = self.undo)
-        self.button2 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Clear", command = self.clear)
-        self.button3 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "Done", command = self.done)
-        self.button4 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "+", command = self.zoom_in)
-        self.button5 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "-", command = self.zoom_out)
+        self.button1 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Undo", command = self.undo)
+        self.button2 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Clear", command = self.clear)
+        self.button3 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "Done", command = self.done)
+        self.button4 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "+", command = self.zoom_in)
+        self.button5 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "-", command = self.zoom_out)
 
         self.button4.pack(side=tk.LEFT)
         self.button5.pack(side=tk.LEFT)
@@ -226,6 +228,8 @@ class GUI_video():
         # Clonning
         self.result = self.image_cloniing(np.array([w//2, h//2]))
         self.show_clonning()
+        self.cx = w//2
+        self.cy = h//2
     
     def show_clonning_video(self):
         cap = cv2.VideoCapture('output.avi')
@@ -237,6 +241,8 @@ class GUI_video():
             cv2.imshow('Output Video', frame)
             if cv2.waitKey(10) == ord('q'):
                 break
+        cap.release()
+        # cv2.destroyAllWindows()
     
     def GenerateVideo(self):
         video_track(np.array(self.source_image), self.pts, self.video_name,(self.cx, self.cy), self.mode)
