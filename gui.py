@@ -224,17 +224,16 @@ class GUI(Cloning):
     def target_click(self, event):
         if not self.load_target_image:
             return
+        if len(self.line) == 0: 
+            return
         print ("[target] clicked at", event.x, event.y)
-        # if self.mode == "cv2":
-        #     if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
-        #     event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
-        #         print("position out of range")
-        #         return
         self.result = self.image_cloniing(np.array([event.x, event.y]))
         self.show_clonning()
         
     def target_click_mat(self, event):
         if not self.load_target_image:
+            return
+        if len(self.line) == 0: 
             return
         print ("[target] clicked at", event.x, event.y)
         self.result = self.matting(( event.x, event.y))
@@ -317,7 +316,7 @@ class GUI(Cloning):
                 self.pts = self.pts[:-1]
         
     def done(self):
-        if len(self.line) <= 3: 
+        if len(self.line) == 0: 
             return
         
         w = self.source.width()

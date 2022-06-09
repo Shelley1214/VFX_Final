@@ -21,105 +21,109 @@ class Cloning:
         return index
 
     def seamlessClone(self, center, mask=[]):
-
-        source_image = np.array(self.source_image, dtype=np.float64)
-        target_image = np.array(self.target_image, dtype=np.float64)
-        src_mask = mask.copy()
-        if mask == []:
-            src_mask = np.zeros_like(source_image, dtype=np.uint8)
-            cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
-            src_mask = src_mask[:,:,0]
-       
-        # boundary and cloning area
-        boundary = cv.findContours(src_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
-        boundary = np.append( boundary, [boundary[0,:]], axis=0)
-        src_mask [ boundary[:,1] , boundary[:,0] ] = 0
-        inner_pixel = np.argwhere(src_mask == 255)
-    
-        # boundary difference
-        offset =  center -  (np.mean(boundary, axis=0, dtype=np.int))
-        target_boundary = boundary + offset
-
-        in_image_idx = self.in_image(target_boundary, target_image.shape)
-        target_boundary = target_boundary[in_image_idx]
-        boundary = boundary[in_image_idx]
-        diff = target_image[target_boundary[:,1], target_boundary[:,0],:] - source_image[boundary[:,1], boundary[:,0],:]
-
-        # MVC
-        R= MVC(boundary, inner_pixel, diff, 3)
-        R = R.reshape((inner_pixel.shape[0],3))
+        try:
+            source_image = np.array(self.source_image, dtype=np.float64)
+            target_image = np.array(self.target_image, dtype=np.float64)
+            src_mask = mask.copy()
+            if mask == []:
+                src_mask = np.zeros_like(source_image, dtype=np.uint8)
+                cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
+                src_mask = src_mask[:,:,0]
         
-        # interpolant
-        index = offset + inner_pixel[:, [1,0]]
-        in_image_idx = self.in_image(index, target_image.shape)
-        index = index[in_image_idx]
-        inner_pixel = inner_pixel[in_image_idx]
-        R = R[in_image_idx]
+            # boundary and cloning area
+            boundary = cv.findContours(src_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
+            boundary = np.append( boundary, [boundary[0,:]], axis=0)
+            src_mask [ boundary[:,1] , boundary[:,0] ] = 0
+            inner_pixel = np.argwhere(src_mask == 255)
+        
+            # boundary difference
+            offset =  center -  (np.mean(boundary, axis=0, dtype=np.int))
+            target_boundary = boundary + offset
 
-        target_image[ index[:,1], index[:,0], : ] = source_image[ inner_pixel[:,0], inner_pixel[:,1], : ] + R
-        target_image = np.clip(0, target_image, 255)
+            in_image_idx = self.in_image(target_boundary, target_image.shape)
+            target_boundary = target_boundary[in_image_idx]
+            boundary = boundary[in_image_idx]
+            diff = target_image[target_boundary[:,1], target_boundary[:,0],:] - source_image[boundary[:,1], boundary[:,0],:]
 
-        return target_image.astype(np.uint8)
+            # MVC
+            R= MVC(boundary, inner_pixel, diff, 3)
+            R = R.reshape((inner_pixel.shape[0],3))
+            
+            # interpolant
+            index = offset + inner_pixel[:, [1,0]]
+            in_image_idx = self.in_image(index, target_image.shape)
+            index = index[in_image_idx]
+            inner_pixel = inner_pixel[in_image_idx]
+            R = R[in_image_idx]
+
+            target_image[ index[:,1], index[:,0], : ] = source_image[ inner_pixel[:,0], inner_pixel[:,1], : ] + R
+            target_image = np.clip(0, target_image, 255)
+
+            return target_image.astype(np.uint8)
+        except:
+            return None
 
     
     def seamlessClone_mesh(self, center, mask=[]):
-
-        source_image = np.array(self.source_image, dtype=np.float64)
-        target_image = np.array(self.target_image, dtype=np.float64)
-        src_mask = mask.copy()
-        if mask == []:
-            src_mask = np.zeros_like(source_image, dtype=np.uint8)
-            cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
-            src_mask = src_mask[:,:,0]
-       
-        # boundary and cloning area
-        boundary = cv.findContours(src_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
-        boundary = np.append( boundary, [boundary[0,:]], axis=0)
-        src_mask [ boundary[:,1] , boundary[:,0] ] = 0
-        inner_pixel = np.argwhere(src_mask == 255)
-
-        # generate adaptive mesh
-        inner_boundary = cv.findContours(src_mask.astype(np.uint8), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1, 2)
-        patch = {}
-        patch['vertices'] = inner_boundary
-        patch['segments'] = [[i, (i+1)%len(inner_boundary)] for i in range(len(inner_boundary))]
-        mesh = tr.triangulate(patch, 'pqD')
+        try:
+            source_image = np.array(self.source_image, dtype=np.float64)
+            target_image = np.array(self.target_image, dtype=np.float64)
+            src_mask = mask.copy()
+            if mask == []:
+                src_mask = np.zeros_like(source_image, dtype=np.uint8)
+                cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
+                src_mask = src_mask[:,:,0]
         
-        inner_mesh = mesh['vertices'][:, [1, 0]].astype(int)
+            # boundary and cloning area
+            boundary = cv.findContours(src_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
+            boundary = np.append( boundary, [boundary[0,:]], axis=0)
+            src_mask [ boundary[:,1] , boundary[:,0] ] = 0
+            inner_pixel = np.argwhere(src_mask == 255)
 
-        # boundary difference
-        offset =  center - (np.mean(boundary, axis=0, dtype=np.int))
-        target_boundary = boundary + offset
+            # generate adaptive mesh
+            inner_boundary = cv.findContours(src_mask.astype(np.uint8), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1, 2)
+            patch = {}
+            patch['vertices'] = inner_boundary
+            patch['segments'] = [[i, (i+1)%len(inner_boundary)] for i in range(len(inner_boundary))]
+            mesh = tr.triangulate(patch, 'pqD')
+            
+            inner_mesh = mesh['vertices'][:, [1, 0]].astype(int)
 
-        in_image_idx = self.in_image(target_boundary, target_image.shape)
-        target_boundary = target_boundary[in_image_idx]
-        boundary = boundary[in_image_idx]
+            # boundary difference
+            offset =  center - (np.mean(boundary, axis=0, dtype=np.int))
+            target_boundary = boundary + offset
 
-        diff = target_image[target_boundary[:, 1], target_boundary[:, 0], :] - source_image[boundary[:, 1], boundary[:, 0], :]
+            in_image_idx = self.in_image(target_boundary, target_image.shape)
+            target_boundary = target_boundary[in_image_idx]
+            boundary = boundary[in_image_idx]
 
-        R = MVC(boundary, inner_mesh, diff, 3)
-        R = R.reshape((inner_mesh.shape[0],3))
-        
-        # interpolant
-        triang = mtri.Triangulation(inner_mesh[:, 1], inner_mesh[:, 0])
-        
-        index = offset + inner_pixel[:, [1,0]]
-        in_image_idx = self.in_image(index, target_image.shape)
-        index = index[in_image_idx]
-        inner_pixel = inner_pixel[in_image_idx]
+            diff = target_image[target_boundary[:, 1], target_boundary[:, 0], :] - source_image[boundary[:, 1], boundary[:, 0], :]
 
-        result = []
-        for rgb in range(3):
-            interpolator = mtri.LinearTriInterpolator(triang, R[:, rgb])
-            Xi, Yi = np.meshgrid(np.array(range(source_image.shape[1])), np.array(range(source_image.shape[0])))
-            value = interpolator(Xi, Yi)
-            result.append(value[inner_pixel[:,0], inner_pixel[:,1]])
-        result = np.array(result).T
+            R = MVC(boundary, inner_mesh, diff, 3)
+            R = R.reshape((inner_mesh.shape[0],3))
+            
+            # interpolant
+            triang = mtri.Triangulation(inner_mesh[:, 1], inner_mesh[:, 0])
+            
+            index = offset + inner_pixel[:, [1,0]]
+            in_image_idx = self.in_image(index, target_image.shape)
+            index = index[in_image_idx]
+            inner_pixel = inner_pixel[in_image_idx]
 
-        target_image[ index[:,1], index[:,0], : ] = source_image[ inner_pixel[:,0], inner_pixel[:,1], : ] + result
-        target_image = np.clip(0, target_image, 255)
+            result = []
+            for rgb in range(3):
+                interpolator = mtri.LinearTriInterpolator(triang, R[:, rgb])
+                Xi, Yi = np.meshgrid(np.array(range(source_image.shape[1])), np.array(range(source_image.shape[0])))
+                value = interpolator(Xi, Yi)
+                result.append(value[inner_pixel[:,0], inner_pixel[:,1]])
+            result = np.array(result).T
 
-        return target_image.astype(np.uint8)
+            target_image[ index[:,1], index[:,0], : ] = source_image[ inner_pixel[:,0], inner_pixel[:,1], : ] + result
+            target_image = np.clip(0, target_image, 255)
+
+            return target_image.astype(np.uint8)
+        except:
+            return None
 
     def OpenCV_Cloning(self, center):
         source_image = np.array(self.source_image, dtype=np.uint8)
