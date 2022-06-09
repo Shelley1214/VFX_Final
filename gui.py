@@ -12,11 +12,11 @@ class GUI(Cloning):
         self.master.withdraw()
         self.master.title(title)
         self.canvas = tk.Canvas(self.master)
-        self.canvas.grid(row = 1, column = 0)
+        self.canvas.grid(row = 2, column = 0)
         self.canvas_shape = 600
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
+        self.image_button.grid(row = 3, column = 0, sticky = tk.NSEW)
 
         self.settingButtons = tk.Frame(self.master)
         self.settingButtons.grid(row = 0, column = 0)
@@ -25,9 +25,9 @@ class GUI(Cloning):
         self.QuickStart.grid(row = 0, column = 1)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
-        self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
+        self.image_button.grid(row = 3, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
-        self.canvas1.grid(row = 1, column = 1)
+        self.canvas1.grid(row = 2, column = 1)
 
         self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Undo", command = self.undo)
         self.button2 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Clear", command = self.clear)
@@ -40,7 +40,9 @@ class GUI(Cloning):
         self.button1.pack(side=tk.LEFT)
         self.button2.pack(side=tk.LEFT)
         self.button3.pack(side=tk.LEFT)
-        
+
+        self.error_message = tk.Label(self.master, text='', fg='red')
+        self.error_message.grid(row = 1, column = 0)
 
         self.master.update()
         self.master.resizable(True, True)
@@ -108,20 +110,22 @@ class GUI(Cloning):
     def zoom_in(self):
         if self.load_source_image:
             self.scale = 1.05
-            self.scale_source_image()
+            if self.source.width() * self.scale <= self.canvas_shape:
+                self.scale_source_image()
 
     def zoom_out(self):
         if self.load_source_image:
             self.scale = 0.95
-            self.scale_source_image()
+            if self.source.width() * self.scale >= 200:
+                self.scale_source_image()
 
     def target_click(self, event):
         print ("[target] clicked at", event.x, event.y)
-        if self.mode == "cv2":
-            if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
-            event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
-                print("position out of range")
-                return
+        # if self.mode == "cv2":
+        #     if event.x - self.source.width()//2 < 0 or event.x + self.source.width()//2 > self.target.width() or \
+        #     event.y - self.source.height()//2  < 0 or event.y + self.source.height()//2 > self.target.height():
+        #         print("position out of range")
+        #         return
         self.result = self.image_cloniing(np.array([event.x, event.y]))
         self.show_clonning()
         
@@ -158,9 +162,15 @@ class GUI(Cloning):
             self.load_target_image = True
 
     def show_clonning(self):
-        self.result = Image.fromarray(self.result)
-        self.result = ImageTk.PhotoImage(self.result,  master = self.master)
-        self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
+        if self.result is None:
+            self.error_message = tk.Label(self.master, text='ERROR operation!!', fg='red')
+            self.error_message.grid(row = 1, column = 0)
+        else:  
+            self.result = Image.fromarray(self.result)
+            self.result = ImageTk.PhotoImage(self.result,  master = self.master)
+            self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
+            self.error_message = tk.Label(self.master, text='                              ', fg='red')
+            self.error_message.grid(row = 1, column = 0)
 
     def choose_source_image(self):
         image_name = fido.askopenfilename(title = "Source image")

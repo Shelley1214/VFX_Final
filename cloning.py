@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
+from tqdm import tgrange
 
 import triangle as  tr
 import matplotlib.tri as mtri
@@ -146,24 +147,33 @@ class Cloning:
 
 
     def OpenCV_Cloning(self, center):
-
         source_image = np.array(self.source_image, dtype=np.uint8)
         target_image = np.array(self.target_image, dtype=np.uint8)
-        # src_shape = np.array(source_image.shape[:2])
-        # trg_shape = np.array(target_image.shape[:2])
-
-        # min_x, min_y = np.maximum(src_shape / 2 - center[[1, 0]], 0).astype(int)
-        # max_x, max_y = np.minimum(src_shape / 2 - center[[1, 0]] + trg_shape, src_shape).astype(int)
+        src_shape = np.array(source_image.shape[:2])
+        trg_shape = np.array(target_image.shape[:2])
 
         src_mask = np.zeros_like(source_image)
         cv.fillPoly(src_mask,  [np.array(self.pts)], (255, 255, 255))
-        # src_mask = src_mask[min_x:max_x, min_y:max_y]
-        # source_image = source_image[min_x:max_x, min_y:max_y]
 
-        # center = center + [(src_shape[1] - max_y  + min_y) // 2, (src_shape[0] - max_x  + min_x) // 2]
-        # print("min", min_x, min_y, max_x, max_y)
-        # print("center", center)
+        boundary = cv.findContours(src_mask[:,:,0], cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
+        roi = np.array(cv.boundingRect(boundary))
+        roi_shape = np.array([roi[3] - roi[1], roi[2] - roi[0]])
 
-        result = cv.seamlessClone( source_image, target_image, src_mask, center, cv.NORMAL_CLONE) 
-        # cv.circle(result, center, 2, [255, 0, 0], 5)
+        min_x, min_y = np.maximum(roi[[1, 0]] + roi_shape / 2 - center[[1, 0]], 0).astype(int)
+        max_x, max_y = np.minimum(roi[[3, 2]] - roi_shape / 2 - center[[1, 0]] + trg_shape, src_shape).astype(int)
+
+        src_mask = src_mask[min_x:max_x, min_y:max_y]
+        source_image = source_image[min_x:max_x, min_y:max_y]
+
+        boundary2 = cv.findContours(src_mask[:,:,0], cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)[-2][0].reshape(-1,2)
+        roi2 = np.array(cv.boundingRect(boundary2))
+
+        if max(min_y, roi[0]) == roi[0] and max(min_x, roi[1]) == roi[1]:
+            center = center + [(-max(roi[2] - max_y, 0) + max(min_y - roi[0], 0)) // 2, (-max(roi[3] - max_x, 0) + max(min_x - roi[1], 0)) // 2]
+        else:
+            center = center + [(-max(roi2[2] - max_y, 0) + max(min_y - roi2[0], 0)) // 2, (-max(roi2[3] - max_x, 0) + max(min_x - roi2[1], 0)) // 2]
+        try:
+            result = cv.seamlessClone( source_image, target_image, src_mask, center, cv.NORMAL_CLONE) 
+        except:
+            result = None
         return result       
