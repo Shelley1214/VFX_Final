@@ -1,4 +1,5 @@
 from gui import GUI
+from gui_video import GUI_video
 import argparse
 
 def parse_args():
@@ -10,10 +11,16 @@ def parse_args():
         choices=["cv2", "mvc", "mesh"],
         default="mesh",
     )
+
+    parser.add_argument("-v", "--video", action='store_true')
     args = parser.parse_args()
     return args
 
 if __name__ == "__main__":
     args = parse_args()
-    loader = GUI(mode=args.mode)
+    if args.video:
+        loader = GUI_video(mode = args.mode)
+    else:
+        loader = GUI(mode=args.mode)
     loader.master.mainloop()
+
