@@ -6,7 +6,7 @@ from cloning import Cloning
 import numpy as np
 from video_track import video_track
 
-class GUI_video():
+class GUI_video(Cloning):
 
     def __init__(self, title = "Image Loader", mode = "cv2"):
 
@@ -98,13 +98,12 @@ class GUI_video():
             self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
 
     def image_cloniing(self, center):
-        clone = Cloning(self.source_image, self.target_image, self.pts)
         if self.mode == "cv2":
-            result = clone.OpenCV_Cloning(center)
+            result = self.OpenCV_Cloning(center)
         elif self.mode == "mvc":
-            result = clone.seamlessClone(center)
+            result = self.seamlessClone(center)
         else:
-            result = clone.seamlessClone_mesh(center)
+            result = self.seamlessClone_mesh(center)
         return result
 
     def scale_source_image(self):
@@ -242,7 +241,7 @@ class GUI_video():
             if cv2.waitKey(10) == ord('q'):
                 break
         cap.release()
-        # cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
     
     def GenerateVideo(self):
         video_track(np.array(self.source_image), self.pts, self.video_name,(self.cx, self.cy), self.mode)
