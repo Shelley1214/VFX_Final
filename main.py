@@ -3,11 +3,11 @@ from tkinter import ttk
 from gui import GUI
 from gui_video import GUI_video
 from gui_matting import GUI_matting
-import argparse
+# import argparse
 
 class Merge_GUI():
 
-    def __init__(self, title = "Image Loader", mode = "cv2"):
+    def __init__(self, title = "Image Loader"):
         
         self.master = tk.Tk()
 
@@ -18,7 +18,7 @@ class Merge_GUI():
         # Cloning
         self.tab1 = ttk.Frame(self.tabControl)
         self.tabControl.add(self.tab1, text='Cloning') 
-        self.cloning = GUI(self.tab1, mode = mode)
+        self.cloning = GUI(self.tab1)
 
         # Matting
         self.tab2 = ttk.Frame(self.tabControl) 
@@ -29,7 +29,7 @@ class Merge_GUI():
         self.tab3 = ttk.Frame(self.tabControl)
         self.tabControl.add(self.tab3, text='Video')
         self.tabControl.pack(expand=1, fill="both")
-        self.video = GUI_video(self.tab3, mode = mode)
+        self.video = GUI_video(self.tab3)
 
 
         self.master.update()
@@ -43,23 +43,24 @@ class Merge_GUI():
             # pass
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--mode", 
-        "-m", 
-        type=str,
-        choices=["cv2", "mvc", "mesh"],
-        default="mesh",
-    )
+# def parse_args():
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument(
+#         "--mode", 
+#         "-m", 
+#         type=str,
+#         choices=["cv2", "mvc", "mesh"],
+#         default="mesh",
+#     )
 
-    parser.add_argument("-v", "--video", action='store_true')
-    args = parser.parse_args()
-    return args
+#     parser.add_argument("-v", "--video", action='store_true')
+#     args = parser.parse_args()
+#     return args
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    loader = Merge_GUI(mode=args.mode)
+    # args = parse_args()
+    # loader = Merge_GUI(mode=args.mode)
+    loader = Merge_GUI()
     loader.master.mainloop()
 

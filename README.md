@@ -18,7 +18,7 @@
 ## How to run
 
 * We use OpenMP to speed up the program. To compile the cpp file, navigate to ```code``` directory and run ```make``` 
-  or 
+  or:
   ```
   g++ mvc.cpp -fopenmp -fPIC -shared -o mvc.so
   ```

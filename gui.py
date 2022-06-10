@@ -6,30 +6,30 @@ import numpy as np
 
 class GUI(Cloning):
 
-    def __init__(self, master, title = "Image Loader", mode = "cv2"):
+    def __init__(self, master, title = "Image Loader"):
 
         super().__init__()
         self.master = master
 
         self.error_message = tk.Label(self.master, text="", fg='red')
-        self.error_message.grid(row = 1, column = 0)
+        self.error_message.grid(row = 2, column = 0)
         self.canvas = tk.Canvas(self.master)
-        self.canvas.grid(row = 2, column = 0)
+        self.canvas.grid(row = 3, column = 0)
         self.canvas_shape = 600
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button.grid(row = 3, column = 0, sticky = tk.NSEW)
+        self.image_button.grid(row = 4, column = 0, sticky = tk.NSEW)
 
         self.settingButtons = tk.Frame(self.master)
-        self.settingButtons.grid(row = 0, column = 0)
+        self.settingButtons.grid(row = 1, column = 0)
 
         self.QuickStart = tk.Button(self.master, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
-        self.QuickStart.grid(row = 0, column = 1)
+        self.QuickStart.grid(row = 1, column = 1)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
-        self.image_button.grid(row = 3, column = 1, sticky = tk.NSEW)
+        self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
-        self.canvas1.grid(row = 2, column = 1)
+        self.canvas1.grid(row = 3, column = 1)
 
         self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Undo", command = self.undo)
         self.button2 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Clear", command = self.clear)
@@ -42,7 +42,7 @@ class GUI(Cloning):
         self.button1.pack(side=tk.LEFT)
         self.button2.pack(side=tk.LEFT)
         self.button3.pack(side=tk.LEFT)
-        
+
         self.canvas.bind("<Button-1>", self.source_click)
         self.canvas1.bind("<Button-1>", self.target_click)
 
@@ -50,8 +50,34 @@ class GUI(Cloning):
         self.load_source_image = False
         self.load_target_image = False
         self.load_trimap_image = False
-        self.mode = mode
+        self.mode = 'mesh'
         self.scale = 1
+
+        self.var1 = tk.IntVar()
+        self.var1.set(3)
+        self.mode_btn = tk.Frame(self.master)
+        self.mode_btn.grid(row = 0, column = 0)
+        self.checkbutton1 = tk.Checkbutton(self.mode_btn, text='cv2',variable=self.var1, onvalue=1, command = lambda: self.checkbutton_event(self.checkbutton1))
+        self.checkbutton2 = tk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
+        self.checkbutton3 = tk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
+        self.checkbutton1.pack(side=tk.LEFT)
+        self.checkbutton2.pack(side=tk.LEFT)
+        self.checkbutton3.pack(side=tk.LEFT)
+
+    def checkbutton_event(self,widget):
+        
+        self.mode =  widget['text']
+
+        self.checkbutton1['state'] = 'normal'
+        self.checkbutton2['state'] = 'normal'
+        self.checkbutton3['state'] = 'normal'
+
+        if widget['text'] == 'cv2':
+            self.checkbutton1['state'] = 'disabled'
+        elif widget['text'] == 'mvc':
+            self.checkbutton2['state'] = 'disabled'
+        else:
+            self.checkbutton3['state'] = 'disabled'
 
 
     def QuickStart(self):

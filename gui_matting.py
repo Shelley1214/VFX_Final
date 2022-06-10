@@ -11,7 +11,7 @@ class GUI_matting(Cloning):
 
         self.master = master
         self.canvas = tk.Frame(self.master)
-        self.canvas.grid(row = 1, column = 0)
+        self.canvas.grid(row = 2, column = 0)
         self.canvas_shape = 600
         self.canvas_1 = tk.Canvas(self.canvas)
         self.canvas_1.pack(fill='x')
@@ -19,7 +19,7 @@ class GUI_matting(Cloning):
         self.canvas_2.pack(fill='x')
 
         self.source_image_button = tk.Frame(self.master)
-        self.source_image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
+        self.source_image_button.grid(row = 3, column = 0, sticky = tk.NSEW)
 
         self.image_button1 = tk.Button(self.source_image_button, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
         self.image_button1.pack(fill='x')
@@ -27,15 +27,15 @@ class GUI_matting(Cloning):
         self.image_button2.pack(fill='x')
 
         self.settingButtons = tk.Frame(self.master)
-        self.settingButtons.grid(row = 0, column = 0)
+        self.settingButtons.grid(row = 1, column = 0)
 
         self.QuickStart = tk.Button(self.master, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
-        self.QuickStart.grid(row = 0, column = 1)
+        self.QuickStart.grid(row = 1, column = 1)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
-        self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
+        self.image_button.grid(row = 3, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
-        self.canvas1.grid(row = 1, column = 1)
+        self.canvas1.grid(row = 2, column = 1)
 
         self.button = tk.Button(self.settingButtons, font = "Helvetica 12", text = "Matting", command = self.done)
         self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "+", command = self.zoom_in)
@@ -49,6 +49,28 @@ class GUI_matting(Cloning):
         self.load_source_image = False
         self.load_target_image = False
         self.load_trimap_image = False
+        self.mode = 'mesh'
+        self.var1 = tk.IntVar()
+        self.var1.set(3)
+        self.mode_btn = tk.Frame(self.master)
+        self.mode_btn.grid(row = 0, column = 0)
+        self.checkbutton2 = tk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
+        self.checkbutton3 = tk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
+        self.checkbutton2.pack(side=tk.LEFT)
+        self.checkbutton3.pack(side=tk.LEFT)
+
+    def checkbutton_event(self,widget):
+        
+        self.mode =  widget['text']
+
+        self.checkbutton2['state'] = 'normal'
+        self.checkbutton3['state'] = 'normal'
+
+        if widget['text'] == 'mvc':
+            self.checkbutton2['state'] = 'disabled'
+        else:
+            self.checkbutton3['state'] = 'disabled'
+
 
     def QuickStart(self):
         target = "image/background.jpeg"
@@ -76,10 +98,11 @@ class GUI_matting(Cloning):
         self.load_target_image = True
 
 
+
     def target_click(self, event):
         if self.load_target_image and self.load_source_image and self.load_trimap_image:
             print ("[target] clicked at", event.x, event.y)
-            self.result = self.matting(( event.x, event.y))
+            self.result = self.matting(( event.x, event.y), self.mode)
             self.show_clonning()
 
     def scale_source_image(self):
@@ -146,5 +169,5 @@ class GUI_matting(Cloning):
     def done(self):
         if self.load_target_image and self.load_source_image and self.load_trimap_image:
             w, h = self.target.width(),self.target.height()
-        self.result = self.matting( (w//2, h//2))
+        self.result = self.matting( (w//2, h//2), self.mode)
         self.show_clonning()

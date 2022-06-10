@@ -4,4 +4,3 @@ opencv-python
 matplotlib
 scipy
 triangle
-argparse

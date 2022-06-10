@@ -157,7 +157,7 @@ class Cloning:
             result = None
         return result       
 
-    def matting(self,center):
+    def matting(self,center, mode):
 
         source_image = np.array(self.source_image, dtype=np.uint8)
         target_image = np.array(self.target_image, dtype=np.uint8)
@@ -200,7 +200,12 @@ class Cloning:
         alpha =  alphaEstimate
 
         # matting_cloning
-        result = self.seamlessClone_mesh(center, mask)
+        if mode == 'mvc':
+            result = self.seamlessClone(center, mask)
+        else:
+            result = self.seamlessClone_mesh(center, mask)
+
+
 
         inner_pixel = np.argwhere(mask == 255)
         index = offset + inner_pixel[:, [1,0]]

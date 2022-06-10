@@ -8,33 +8,33 @@ from video_track import video_track
 
 class GUI_video(Cloning):
 
-    def __init__(self, master, title = "Image Loader", mode = "cv2"):
+    def __init__(self, master, title = "Image Loader"):
 
         # self.master = tk.Tk()
         # self.master.withdraw()
         # self.master.title(title)
         self.master = master
         self.canvas = tk.Canvas(self.master)
-        self.canvas.grid(row = 1, column = 0)
+        self.canvas.grid(row = 2, column = 0)
         self.canvas_shape = 600
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button.grid(row = 2, column = 0, sticky = tk.NSEW)
+        self.image_button.grid(row = 3, column = 0, sticky = tk.NSEW)
 
         self.settingButtons_l = tk.Frame(self.master)
-        self.settingButtons_l.grid(row = 0, column = 0)
+        self.settingButtons_l.grid(row = 1, column = 0)
         
         self.settingButtons_r = tk.Frame(self.master)
-        self.settingButtons_r.grid(row = 0, column = 1)
+        self.settingButtons_r.grid(row = 1, column = 1)
         self.QuickStart = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
         self.QuickStart.pack(side=tk.LEFT)
         self.GenerateVideo = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "Generate Video", command = self.GenerateVideo)
         self.GenerateVideo.pack(side=tk.LEFT)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Video", command = self.choose_target_image)
-        self.image_button.grid(row = 2, column = 1, sticky = tk.NSEW)
+        self.image_button.grid(row = 3, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
-        self.canvas1.grid(row = 1, column = 1)
+        self.canvas1.grid(row = 2, column = 1)
 
         self.button1 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Undo", command = self.undo)
         self.button2 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Clear", command = self.clear)
@@ -55,7 +55,7 @@ class GUI_video(Cloning):
         self.load_source_image = False
         self.load_target_video = False
 
-        self.mode = mode
+        self.mode = 'mesh'
         self.scale = 1
         
         self.video_name = ""
@@ -64,6 +64,31 @@ class GUI_video(Cloning):
         self.pts = np.empty((0, 2), dtype=int)
         self.cx = 0
         self.cy = 0
+        self.var1 = tk.IntVar()
+        self.var1.set(3)
+        self.mode_btn = tk.Frame(self.master)
+        self.mode_btn.grid(row = 0, column = 0)
+        self.checkbutton1 = tk.Checkbutton(self.mode_btn, text='cv2',variable=self.var1, onvalue=1, command = lambda: self.checkbutton_event(self.checkbutton1))
+        self.checkbutton2 = tk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
+        self.checkbutton3 = tk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
+        self.checkbutton1.pack(side=tk.LEFT)
+        self.checkbutton2.pack(side=tk.LEFT)
+        self.checkbutton3.pack(side=tk.LEFT)
+
+    def checkbutton_event(self,widget):
+        
+        self.mode =  widget['text']
+
+        self.checkbutton1['state'] = 'normal'
+        self.checkbutton2['state'] = 'normal'
+        self.checkbutton3['state'] = 'normal'
+
+        if widget['text'] == 'cv2':
+            self.checkbutton1['state'] = 'disabled'
+        elif widget['text'] == 'mvc':
+            self.checkbutton2['state'] = 'disabled'
+        else:
+            self.checkbutton3['state'] = 'disabled'
 
     def QuickStart(self):
         target_video = "image/Bear_orig.avi"
