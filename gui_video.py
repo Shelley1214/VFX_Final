@@ -209,7 +209,7 @@ class GUI_video(Cloning):
             self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
             self.load_target_image = True
 
-    def show_clonning(self):
+    def show_clonning(self, video=False):
         if self.result is None:
             self.message['text'] = 'ERROR operation!!'
             self.master.update()
@@ -217,8 +217,9 @@ class GUI_video(Cloning):
             self.result = Image.fromarray(self.result)
             self.result = ImageTk.PhotoImage(self.result,  master = self.master)
             self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
-            self.message['text'] = ''
-            self.master.update()
+            if not video:
+                self.message['text'] = ''
+                self.master.update()
 
     def choose_source_image(self):
         image_name = fido.askopenfilename(title = "Source image")
@@ -317,7 +318,6 @@ class GUI_video(Cloning):
         return (center_x, center_y)
 
     def video_track(self):
-        img = np.array(self.source_image)
         click_center = (self.cx, self.cy)
 
         self.message['text'] = 'Processing bounding box...'
@@ -335,8 +335,12 @@ class GUI_video(Cloning):
 
             succes, frame = cap.read()
             center = self.get_center(bbox[i])
+            self.target_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             clone_image = self.image_cloniing(center)
-            #cv2.imwrite("frame %d.jpeg" %i, clone_image)
+            self.result = clone_image.copy()
+            self.show_clonning(video=True)
+            
+            clone_image = cv2.cvtColor(clone_image, cv2.COLOR_BGR2RGB)
             result.append(clone_image)
             img_h, img_w, _ = clone_image.shape
             size = (img_w, img_h)
@@ -357,4 +361,4 @@ class GUI_video(Cloning):
             self.message['text'] = 'Generating Video...'
             self.master.update()
             self.video_track()
-            self.show_clonning_video()
+            # self.show_clonning_video()
