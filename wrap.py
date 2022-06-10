@@ -1,8 +1,5 @@
 import ctypes 
-import sys
-import os 
 import numpy as np
-import time
 
 handle = ctypes.CDLL( "mvc.so")
 handle.MVC_Function.argtypes = [ctypes.POINTER((ctypes.c_int)), (ctypes.POINTER(ctypes.c_int)), ctypes.POINTER(ctypes.c_double), ctypes.c_int, ctypes.c_int, ctypes.c_int]

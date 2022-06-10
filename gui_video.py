@@ -8,11 +8,12 @@ from video_track import video_track
 
 class GUI_video(Cloning):
 
-    def __init__(self, title = "Image Loader", mode = "cv2"):
+    def __init__(self, master, title = "Image Loader", mode = "cv2"):
 
-        self.master = tk.Tk()
-        self.master.withdraw()
-        self.master.title(title)
+        # self.master = tk.Tk()
+        # self.master.withdraw()
+        # self.master.title(title)
+        self.master = master
         self.canvas = tk.Canvas(self.master)
         self.canvas.grid(row = 1, column = 0)
         self.canvas_shape = 600
@@ -47,10 +48,6 @@ class GUI_video(Cloning):
         self.button2.pack(side=tk.LEFT)
         self.button3.pack(side=tk.LEFT)
         
-
-        self.master.update()
-        self.master.resizable(True, True)
-        self.master.deiconify()
 
         self.canvas.bind("<Button-1>", self.source_click)
         self.canvas1.bind("<Button-1>", self.target_click)

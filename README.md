@@ -2,7 +2,8 @@
 ```
 [code]/
   ├──[image]
-  ├──[mvc_matting]
+  ├── main.py
+  ├── ...
   └── README
 ```
   
@@ -18,11 +19,14 @@
 
 * mvc image matting & cloning
 
-  In this section, we use OpenMP to speed up the program. To compile the cpp file, navigate to ```mvc_matting``` directory and run: 
-  
-    ```
-    g++-11 mvc.cpp -fopenmp -fPIC -shared -o mvc.so
-    ```
+  In this section, we use OpenMP to speed up the program. To compile the cpp file, navigate to ```code``` directory and run:
+  ```
+  make
+  ``` 
+  or 
+  ```
+  g++ mvc.cpp -fopenmp -fPIC -shared -o mvc.so
+  ```
     
   Python file can then call C++ code with ctypes module:
    
