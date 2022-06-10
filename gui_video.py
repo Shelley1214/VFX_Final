@@ -4,7 +4,7 @@ from PIL import ImageTk, Image
 import cv2
 from cloning import Cloning
 import numpy as np
-from video_track import video_track
+from klt_utils import getFeatures, estimateAllTranslation, applyGeometricTransformation
 
 class GUI_video(Cloning):
 
@@ -14,12 +14,15 @@ class GUI_video(Cloning):
         # self.master.withdraw()
         # self.master.title(title)
         self.master = master
+
+        self.message = tk.Label(self.master, text="", fg='red')
+        self.message.grid(row = 2, column = 0)
         self.canvas = tk.Canvas(self.master)
-        self.canvas.grid(row = 2, column = 0)
+        self.canvas.grid(row = 3, column = 0)
         self.canvas_shape = 600
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button.grid(row = 3, column = 0, sticky = tk.NSEW)
+        self.image_button.grid(row = 4, column = 0, sticky = tk.NSEW)
 
         self.settingButtons_l = tk.Frame(self.master)
         self.settingButtons_l.grid(row = 1, column = 0)
@@ -32,9 +35,9 @@ class GUI_video(Cloning):
         self.GenerateVideo.pack(side=tk.LEFT)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Video", command = self.choose_target_image)
-        self.image_button.grid(row = 3, column = 1, sticky = tk.NSEW)
+        self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
-        self.canvas1.grid(row = 2, column = 1)
+        self.canvas1.grid(row = 3, column = 1)
 
         self.button1 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Undo", command = self.undo)
         self.button2 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Clear", command = self.clear)
@@ -207,9 +210,15 @@ class GUI_video(Cloning):
             self.load_target_image = True
 
     def show_clonning(self):
-        self.result = Image.fromarray(self.result)
-        self.result = ImageTk.PhotoImage(self.result,  master = self.master)
-        self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
+        if self.result is None:
+            self.message['text'] = 'ERROR operation!!'
+            self.master.update()
+        else:  
+            self.result = Image.fromarray(self.result)
+            self.result = ImageTk.PhotoImage(self.result,  master = self.master)
+            self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
+            self.message['text'] = ''
+            self.master.update()
 
     def choose_source_image(self):
         image_name = fido.askopenfilename(title = "Source image")
@@ -264,7 +273,88 @@ class GUI_video(Cloning):
                 break
         cap.release()
         cv2.destroyAllWindows()
+
+    def get_bbox(self, video_file, click_center):
+        cap = cv2.VideoCapture(video_file)
+        frame_num = 150#int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
+        frames = np.empty((frame_num, ), dtype=np.ndarray)
+
+        for i in range(frame_num):
+            success, frames[i] = cap.read()
+        
+        cx = click_center[0]
+        cy = click_center[1]
+        
+        bboxs = np.empty((frame_num,), dtype=np.ndarray)
+        bboxs[0] = np.empty((4,2), dtype=float)
+        bboxs[0] = np.array([[cx-50, cy-50],[cx+50, cy-50],[cx-50, cy+50],[cx+50, cy+50]]).astype(float)
+        startXs, startYs = getFeatures(cv2.cvtColor( frames[0], cv2.COLOR_RGB2GRAY), bboxs[0])
+        for i in range(1, frame_num):
+            # print('Processing Frame',i)
+            newXs, newYs = estimateAllTranslation(startXs, startYs, frames[i-1], frames[i])
+            Xs, Ys ,bboxs[i] = applyGeometricTransformation(startXs, startYs, newXs, newYs, bboxs[i-1])
+        
+            # update coordinates
+            startXs = Xs
+            startYs = Ys
+
+            # update feature points as required
+            n_features_left = np.sum(Xs!=-1)
+            #print('# of Features: %d'%n_features_left)
+            if n_features_left < 15:
+                startXs,startYs = getFeatures(cv2.cvtColor(frames[i],cv2.COLOR_RGB2GRAY),bboxs[i])
+
+        cap.release()
+        return bboxs
+
+    def get_center(self, bbox):
+        sx = int(bbox[0][0])
+        sy = int(bbox[0][1])
+        ex = int(bbox[3][0])
+        ey = int(bbox[3][1])
+        center_x = int((ex-sx)/2)+sx
+        center_y = int((ey-sy)/2)+sy
+        return (center_x, center_y)
+
+    def video_track(self):
+        img = np.array(self.source_image)
+        click_center = (self.cx, self.cy)
+
+        self.message['text'] = 'Processing bounding box...'
+        self.master.update()
+        bbox = self.get_bbox(self.video_name, click_center)
+        
+        cap = cv2.VideoCapture(self.video_name)
+        frame_num = 150 #int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
+        frames = np.empty((frame_num, ), dtype=np.ndarray)
+        
+        result = []
+        for i in range(frame_num):
+            self.message['text'] = 'Processing Frame ' + str(i) + '...'
+            self.master.update()
+
+            succes, frame = cap.read()
+            center = self.get_center(bbox[i])
+            clone_image = self.image_cloniing(center)
+            #cv2.imwrite("frame %d.jpeg" %i, clone_image)
+            result.append(clone_image)
+            img_h, img_w, _ = clone_image.shape
+            size = (img_w, img_h)
+
+        # Output frames to video
+        out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*"mp4v"), 40, size)
+        for i in range(len(result)):
+            out.write(result[i])
+        out.release()
+        print("Video is saved.")
+        self.message['text'] = 'Video is saved in output.mp4!'
+        self.master.update()
+        cv2.destroyAllWindows()
+        cap.release()
     
     def GenerateVideo(self):
-        video_track(np.array(self.source_image), self.pts, self.video_name,(self.cx, self.cy), self.mode)
-        self.show_clonning_video()
+        if self.load_source_image and self.load_target_image:
+            self.message['text'] = 'Generating Video...'
+            self.master.update()
+            self.video_track()
+            self.show_clonning_video()

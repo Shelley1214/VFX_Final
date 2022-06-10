@@ -10,8 +10,11 @@ class GUI_matting(Cloning):
         super().__init__()
 
         self.master = master
+
+        self.message = tk.Label(self.master, text="", fg='red')
+        self.message.grid(row = 2, column = 0)
         self.canvas = tk.Frame(self.master)
-        self.canvas.grid(row = 2, column = 0)
+        self.canvas.grid(row = 3, column = 0)
         self.canvas_shape = 600
         self.canvas_1 = tk.Canvas(self.canvas)
         self.canvas_1.pack(fill='x')
@@ -19,7 +22,7 @@ class GUI_matting(Cloning):
         self.canvas_2.pack(fill='x')
 
         self.source_image_button = tk.Frame(self.master)
-        self.source_image_button.grid(row = 3, column = 0, sticky = tk.NSEW)
+        self.source_image_button.grid(row = 4, column = 0, sticky = tk.NSEW)
 
         self.image_button1 = tk.Button(self.source_image_button, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
         self.image_button1.pack(fill='x')
@@ -29,13 +32,17 @@ class GUI_matting(Cloning):
         self.settingButtons = tk.Frame(self.master)
         self.settingButtons.grid(row = 1, column = 0)
 
-        self.QuickStart = tk.Button(self.master, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
-        self.QuickStart.grid(row = 1, column = 1)
+        self.settingButtons_r = tk.Frame(self.master)
+        self.settingButtons_r.grid(row = 1, column = 1)
+        self.QuickStart = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
+        self.QuickStart.pack(side=tk.LEFT)
+        self.Download = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "Download image", command = self.download)
+        self.Download.pack(side=tk.LEFT)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
-        self.image_button.grid(row = 3, column = 1, sticky = tk.NSEW)
+        self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
-        self.canvas1.grid(row = 2, column = 1)
+        self.canvas1.grid(row = 3, column = 1)
 
         self.button = tk.Button(self.settingButtons, font = "Helvetica 12", text = "Matting", command = self.done)
         self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "+", command = self.zoom_in)
@@ -97,7 +104,10 @@ class GUI_matting(Cloning):
         self.canvas1.create_image((0,0), image = self.target, anchor = tk.NW)
         self.load_target_image = True
 
-
+    def download(self):
+        if self.result is not None:
+            self.result.save('matting.png')
+            self.message['text'] = 'Image is saved in matting.png!'
 
     def target_click(self, event):
         if self.load_target_image and self.load_source_image and self.load_trimap_image:
@@ -165,6 +175,7 @@ class GUI_matting(Cloning):
     def show_clonning(self):
         self.result_ = ImageTk.PhotoImage(self.result,  master = self.master)
         self.canvas1.create_image((0,0), image = self.result_, anchor = tk.NW)
+        self.message['text'] = ''
 
     def done(self):
         if self.load_target_image and self.load_source_image and self.load_trimap_image:

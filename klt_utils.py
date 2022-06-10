@@ -80,7 +80,7 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
     actual_inliers = actual_points[distance < THRES]
     desired_inliers = desired_points[distance < THRES]
     if np.shape(desired_inliers)[0]<4:
-        print('too few points')
+        # print('too few points')
         actual_inliers = actual_points
         desired_inliers = desired_points
     t.estimate(dst=actual_inliers, src=desired_inliers)

@@ -11,8 +11,8 @@ class GUI(Cloning):
         super().__init__()
         self.master = master
 
-        self.error_message = tk.Label(self.master, text="", fg='red')
-        self.error_message.grid(row = 2, column = 0)
+        self.message = tk.Label(self.master, text="", fg='red')
+        self.message.grid(row = 2, column = 0)
         self.canvas = tk.Canvas(self.master)
         self.canvas.grid(row = 3, column = 0)
         self.canvas_shape = 600
@@ -20,22 +20,26 @@ class GUI(Cloning):
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
         self.image_button.grid(row = 4, column = 0, sticky = tk.NSEW)
 
-        self.settingButtons = tk.Frame(self.master)
-        self.settingButtons.grid(row = 1, column = 0)
+        self.settingButtons_l = tk.Frame(self.master)
+        self.settingButtons_l.grid(row = 1, column = 0)
 
-        self.QuickStart = tk.Button(self.master, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
-        self.QuickStart.grid(row = 1, column = 1)
+        self.settingButtons_r = tk.Frame(self.master)
+        self.settingButtons_r.grid(row = 1, column = 1)
+        self.QuickStart = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
+        self.QuickStart.pack(side=tk.LEFT)
+        self.Download = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "Download image", command = self.download)
+        self.Download.pack(side=tk.LEFT)
 
         self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
         self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
         self.canvas1.grid(row = 3, column = 1)
 
-        self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Undo", command = self.undo)
-        self.button2 = tk.Button(self.settingButtons, font = "Helvetica 12",text = "Clear", command = self.clear)
-        self.button3 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "Done", command = self.done)
-        self.button4 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "+", command = self.zoom_in)
-        self.button5 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "-", command = self.zoom_out)
+        self.button1 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Undo", command = self.undo)
+        self.button2 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Clear", command = self.clear)
+        self.button3 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "Done", command = self.done)
+        self.button4 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "+", command = self.zoom_in)
+        self.button5 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "-", command = self.zoom_out)
 
         self.button4.pack(side=tk.LEFT)
         self.button5.pack(side=tk.LEFT)
@@ -106,6 +110,10 @@ class GUI(Cloning):
             points = [self.pts[i][0] + offset, self.pts[i][1], self.pts[i+1][0] + offset, self.pts[i+1][1]]
             self.line.append(self.canvas.create_line(points[0], points[1], points[2], points[3], fill="red", width=1))
 
+    def download(self):
+        if self.result is not None:
+            self.result.save('mvc.png')
+            self.message['text'] = 'Image is saved in mvc.png!'
 
     def image_cloniing(self, center):
         if self.mode == "cv2":
@@ -197,12 +205,12 @@ class GUI(Cloning):
 
     def show_clonning(self):
         if self.result is None:
-            self.error_message['text'] = 'ERROR operation!!'
+            self.message['text'] = 'ERROR operation!!'
         else:  
             self.result = Image.fromarray(self.result)
-            self.result = ImageTk.PhotoImage(self.result,  master = self.master)
-            self.canvas1.create_image((0,0), image = self.result, anchor = tk.NW)
-            self.error_message['text'] = ''
+            self.resultTk = ImageTk.PhotoImage(self.result,  master = self.master)
+            self.canvas1.create_image((0,0), image = self.resultTk, anchor = tk.NW)
+            self.message['text'] = ''
 
     def choose_source_image(self):
         image_name = fido.askopenfilename(title = "Source image")
