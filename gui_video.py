@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog as fido
 from PIL import ImageTk, Image
 import cv2
@@ -15,13 +16,13 @@ class GUI_video(Cloning):
         # self.master.title(title)
         self.master = master
 
-        self.message = tk.Label(self.master, text="", fg='red')
+        self.message = ttk.Label(self.master, text="", foreground='red')
         self.message.grid(row = 2, column = 0)
         self.canvas = tk.Canvas(self.master)
         self.canvas.grid(row = 3, column = 0)
         self.canvas_shape = 600
 
-        self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
+        self.image_button = ttk.Button(self.master,text = "Choose Source Image", command = self.choose_source_image)
         self.image_button.grid(row = 4, column = 0, sticky = tk.NSEW)
 
         self.settingButtons_l = tk.Frame(self.master)
@@ -29,21 +30,21 @@ class GUI_video(Cloning):
         
         self.settingButtons_r = tk.Frame(self.master)
         self.settingButtons_r.grid(row = 1, column = 1)
-        self.QuickStart = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
+        self.QuickStart = ttk.Button(self.settingButtons_r,text = "QuickStart", command = self.QuickStart)
         self.QuickStart.pack(side=tk.LEFT)
-        self.GenerateVideo = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "Generate Video", command = self.GenerateVideo)
+        self.GenerateVideo = ttk.Button(self.settingButtons_r,text = "Generate Video", command = self.GenerateVideo)
         self.GenerateVideo.pack(side=tk.LEFT)
 
-        self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Video", command = self.choose_target_image)
+        self.image_button = ttk.Button(self.master,text = "Choose Target Video", command = self.choose_target_image)
         self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
         self.canvas1.grid(row = 3, column = 1)
 
-        self.button1 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Undo", command = self.undo)
-        self.button2 = tk.Button(self.settingButtons_l, font = "Helvetica 12",text = "Clear", command = self.clear)
-        self.button3 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "Done", command = self.done)
-        self.button4 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "+", command = self.zoom_in)
-        self.button5 = tk.Button(self.settingButtons_l, font = "Helvetica 12", text = "-", command = self.zoom_out)
+        self.button1 = ttk.Button(self.settingButtons_l,text = "Undo", command = self.undo)
+        self.button2 = ttk.Button(self.settingButtons_l,text = "Clear", command = self.clear)
+        self.button3 = ttk.Button(self.settingButtons_l, text = "Done", command = self.done)
+        self.button4 = ttk.Button(self.settingButtons_l, text = "+", command = self.zoom_in)
+        self.button5 = ttk.Button(self.settingButtons_l, text = "-", command = self.zoom_out)
 
         self.button4.pack(side=tk.LEFT)
         self.button5.pack(side=tk.LEFT)
@@ -71,9 +72,9 @@ class GUI_video(Cloning):
         self.var1.set(3)
         self.mode_btn = tk.Frame(self.master)
         self.mode_btn.grid(row = 0, column = 0)
-        self.checkbutton1 = tk.Checkbutton(self.mode_btn, text='cv2',variable=self.var1, onvalue=1, command = lambda: self.checkbutton_event(self.checkbutton1))
-        self.checkbutton2 = tk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
-        self.checkbutton3 = tk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
+        self.checkbutton1 = ttk.Checkbutton(self.mode_btn, text='cv2',variable=self.var1, onvalue=1, command = lambda: self.checkbutton_event(self.checkbutton1))
+        self.checkbutton2 = ttk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
+        self.checkbutton3 = ttk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
         self.checkbutton1.pack(side=tk.LEFT)
         self.checkbutton2.pack(side=tk.LEFT)
         self.checkbutton3.pack(side=tk.LEFT)

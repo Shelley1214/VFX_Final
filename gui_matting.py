@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog as fido
 from PIL import ImageTk, Image
 from cloning import Cloning
@@ -11,7 +12,7 @@ class GUI_matting(Cloning):
 
         self.master = master
 
-        self.message = tk.Label(self.master, text="", fg='red')
+        self.message =  ttk.Label(self.master, text="", foreground='red')
         self.message.grid(row = 2, column = 0)
         self.canvas = tk.Frame(self.master)
         self.canvas.grid(row = 3, column = 0)
@@ -21,32 +22,30 @@ class GUI_matting(Cloning):
         self.canvas_2 = tk.Canvas(self.canvas)
         self.canvas_2.pack(fill='x')
 
-        self.source_image_button = tk.Frame(self.master)
-        self.source_image_button.grid(row = 4, column = 0, sticky = tk.NSEW)
 
-        self.image_button1 = tk.Button(self.source_image_button, font = "Helvetica 12",text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button1.pack(fill='x')
-        self.image_button2 = tk.Button(self.source_image_button, font = "Helvetica 12",text = "Choose Trimap Image", command = self.choose_trimap_image)
-        self.image_button2.pack(fill='x')
+        self.image_button1 = ttk.Button(self.master,text = "Choose Source Image", command = self.choose_source_image)
+        self.image_button1.grid(row = 4, column = 0, sticky = tk.NSEW)
+        self.image_button2 = ttk.Button(self.master,text = "Choose Trimap Image", command = self.choose_trimap_image)
+        self.image_button2.grid(row = 5, column = 0, sticky = tk.NSEW)
 
         self.settingButtons = tk.Frame(self.master)
         self.settingButtons.grid(row = 1, column = 0)
 
         self.settingButtons_r = tk.Frame(self.master)
         self.settingButtons_r.grid(row = 1, column = 1)
-        self.QuickStart = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "QuickStart", command = self.QuickStart)
+        self.QuickStart = ttk.Button(self.settingButtons_r,text = "QuickStart", command = self.QuickStart)
         self.QuickStart.pack(side=tk.LEFT)
-        self.Download = tk.Button(self.settingButtons_r, font = "Helvetica 12",text = "Download image", command = self.download)
+        self.Download = ttk.Button(self.settingButtons_r,text = "Download image", command = self.download)
         self.Download.pack(side=tk.LEFT)
 
-        self.image_button = tk.Button(self.master, font = "Helvetica 12",text = "Choose Target Image", command = self.choose_target_image)
+        self.image_button = ttk.Button(self.master,text = "Choose Target Image", command = self.choose_target_image)
         self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
         self.canvas1 = tk.Canvas(self.master)
         self.canvas1.grid(row = 3, column = 1)
 
-        self.button = tk.Button(self.settingButtons, font = "Helvetica 12", text = "Matting", command = self.done)
-        self.button1 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "+", command = self.zoom_in)
-        self.button2 = tk.Button(self.settingButtons, font = "Helvetica 12", text = "-", command = self.zoom_out)
+        self.button = ttk.Button(self.settingButtons, text = "Matting", command = self.done)
+        self.button1 = ttk.Button(self.settingButtons, text = "+", command = self.zoom_in)
+        self.button2 = ttk.Button(self.settingButtons, text = "-", command = self.zoom_out)
 
         self.button1.pack(side=tk.LEFT)
         self.button2.pack(side=tk.LEFT)
@@ -61,8 +60,8 @@ class GUI_matting(Cloning):
         self.var1.set(3)
         self.mode_btn = tk.Frame(self.master)
         self.mode_btn.grid(row = 0, column = 0)
-        self.checkbutton2 = tk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
-        self.checkbutton3 = tk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
+        self.checkbutton2 = ttk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
+        self.checkbutton3 = ttk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
         self.checkbutton2.pack(side=tk.LEFT)
         self.checkbutton3.pack(side=tk.LEFT)
 
