@@ -16,14 +16,14 @@ class GUI_video(Cloning):
         # self.master.title(title)
         self.master = master
 
-        self.message = ttk.Label(self.master, text="", foreground='red')
+        self.message = ttk.Label(self.master, text="", foreground='white', font=("-size", 14, "-weight", "bold"),)
         self.message.grid(row = 2, column = 0)
-        self.canvas = tk.Canvas(self.master)
+        self.canvas = tk.Canvas(self.master, width=500, height=200)
         self.canvas.grid(row = 3, column = 0)
         self.canvas_shape = 600
 
         self.image_button = ttk.Button(self.master,text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button.grid(row = 4, column = 0, sticky = tk.NSEW)
+        self.image_button.grid(row = 4, column = 0, sticky = tk.NSEW, padx=5)
 
         self.settingButtons_l = tk.Frame(self.master)
         self.settingButtons_l.grid(row = 1, column = 0)
@@ -31,13 +31,13 @@ class GUI_video(Cloning):
         self.settingButtons_r = tk.Frame(self.master)
         self.settingButtons_r.grid(row = 1, column = 1)
         self.QuickStart = ttk.Button(self.settingButtons_r,text = "QuickStart", command = self.QuickStart)
-        self.QuickStart.pack(side=tk.LEFT)
+        self.QuickStart.pack(side=tk.LEFT, padx=5)
         self.GenerateVideo = ttk.Button(self.settingButtons_r,text = "Generate Video", command = self.GenerateVideo)
-        self.GenerateVideo.pack(side=tk.LEFT)
+        self.GenerateVideo.pack(side=tk.LEFT, padx=5)
 
         self.image_button = ttk.Button(self.master,text = "Choose Target Video", command = self.choose_target_image)
-        self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
-        self.canvas1 = tk.Canvas(self.master)
+        self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW, padx=5)
+        self.canvas1 = tk.Canvas(self.master, width=500, height=200)
         self.canvas1.grid(row = 3, column = 1)
 
         self.button1 = ttk.Button(self.settingButtons_l,text = "Undo", command = self.undo)
@@ -46,11 +46,11 @@ class GUI_video(Cloning):
         self.button4 = ttk.Button(self.settingButtons_l, text = "+", command = self.zoom_in)
         self.button5 = ttk.Button(self.settingButtons_l, text = "-", command = self.zoom_out)
 
-        self.button4.pack(side=tk.LEFT)
-        self.button5.pack(side=tk.LEFT)
-        self.button1.pack(side=tk.LEFT)
-        self.button2.pack(side=tk.LEFT)
-        self.button3.pack(side=tk.LEFT)
+        self.button4.pack(side=tk.LEFT, padx=5)
+        self.button5.pack(side=tk.LEFT, padx=5)
+        self.button1.pack(side=tk.LEFT, padx=5)
+        self.button2.pack(side=tk.LEFT, padx=5)
+        self.button3.pack(side=tk.LEFT, padx=5)
         
 
         self.canvas.bind("<Button-1>", self.source_click)
@@ -75,9 +75,9 @@ class GUI_video(Cloning):
         self.checkbutton1 = ttk.Checkbutton(self.mode_btn, text='cv2',variable=self.var1, onvalue=1, command = lambda: self.checkbutton_event(self.checkbutton1))
         self.checkbutton2 = ttk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
         self.checkbutton3 = ttk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
-        self.checkbutton1.pack(side=tk.LEFT)
-        self.checkbutton2.pack(side=tk.LEFT)
-        self.checkbutton3.pack(side=tk.LEFT)
+        self.checkbutton1.pack(side=tk.LEFT, padx=5)
+        self.checkbutton2.pack(side=tk.LEFT, padx=5)
+        self.checkbutton3.pack(side=tk.LEFT, padx=5)
 
     def checkbutton_event(self,widget):
         

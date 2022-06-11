@@ -12,21 +12,21 @@ class GUI_matting(Cloning):
 
         self.master = master
 
-        self.message =  ttk.Label(self.master, text="", foreground='red')
+        self.message =  ttk.Label(self.master, text="", foreground='white', font=("-size", 14, "-weight", "bold"),)
         self.message.grid(row = 2, column = 0)
         self.canvas = tk.Frame(self.master)
         self.canvas.grid(row = 3, column = 0)
         self.canvas_shape = 600
-        self.canvas_1 = tk.Canvas(self.canvas)
+        self.canvas_1 = tk.Canvas(self.canvas, width=500, height=100)
         self.canvas_1.pack(fill='x')
-        self.canvas_2 = tk.Canvas(self.canvas)
+        self.canvas_2 = tk.Canvas(self.canvas, width=500, height=100)
         self.canvas_2.pack(fill='x')
 
 
         self.image_button1 = ttk.Button(self.master,text = "Choose Source Image", command = self.choose_source_image)
-        self.image_button1.grid(row = 4, column = 0, sticky = tk.NSEW)
+        self.image_button1.grid(row = 4, column = 0, sticky = tk.NSEW, pady=5, padx=5)
         self.image_button2 = ttk.Button(self.master,text = "Choose Trimap Image", command = self.choose_trimap_image)
-        self.image_button2.grid(row = 5, column = 0, sticky = tk.NSEW)
+        self.image_button2.grid(row = 5, column = 0, sticky = tk.NSEW, pady=5, padx=5)
 
         self.settingButtons = tk.Frame(self.master)
         self.settingButtons.grid(row = 1, column = 0)
@@ -34,36 +34,37 @@ class GUI_matting(Cloning):
         self.settingButtons_r = tk.Frame(self.master)
         self.settingButtons_r.grid(row = 1, column = 1)
         self.QuickStart = ttk.Button(self.settingButtons_r,text = "QuickStart", command = self.QuickStart)
-        self.QuickStart.pack(side=tk.LEFT)
+        self.QuickStart.pack(side=tk.LEFT, padx=5)
         self.Download = ttk.Button(self.settingButtons_r,text = "Download image", command = self.download)
-        self.Download.pack(side=tk.LEFT)
+        self.Download.pack(side=tk.LEFT, padx=5)
 
         self.image_button = ttk.Button(self.master,text = "Choose Target Image", command = self.choose_target_image)
-        self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW)
-        self.canvas1 = tk.Canvas(self.master)
+        self.image_button.grid(row = 4, column = 1, sticky = tk.NSEW, pady=5, padx=5)
+        self.canvas1 = tk.Canvas(self.master, width=500, height=100)
         self.canvas1.grid(row = 3, column = 1)
 
         self.button = ttk.Button(self.settingButtons, text = "Matting", command = self.done)
         self.button1 = ttk.Button(self.settingButtons, text = "+", command = self.zoom_in)
         self.button2 = ttk.Button(self.settingButtons, text = "-", command = self.zoom_out)
 
-        self.button1.pack(side=tk.LEFT)
-        self.button2.pack(side=tk.LEFT)
-        self.button.pack(side=tk.LEFT)
+        self.button1.pack(side=tk.LEFT, padx=5)
+        self.button2.pack(side=tk.LEFT, padx=5)
+        self.button.pack(side=tk.LEFT, padx=5)
         self.canvas1.bind("<Button-1>", self.target_click)
 
         self.load_source_image = False
         self.load_target_image = False
         self.load_trimap_image = False
         self.mode = 'mesh'
+        self.result = None
         self.var1 = tk.IntVar()
         self.var1.set(3)
         self.mode_btn = tk.Frame(self.master)
         self.mode_btn.grid(row = 0, column = 0)
         self.checkbutton2 = ttk.Checkbutton(self.mode_btn, text='mvc', variable=self.var1, onvalue=2, command = lambda: self.checkbutton_event(self.checkbutton2))
         self.checkbutton3 = ttk.Checkbutton(self.mode_btn, text='mesh', state='disabled', variable=self.var1, onvalue=3, command = lambda: self.checkbutton_event(self.checkbutton3))
-        self.checkbutton2.pack(side=tk.LEFT)
-        self.checkbutton3.pack(side=tk.LEFT)
+        self.checkbutton2.pack(side=tk.LEFT, padx=5)
+        self.checkbutton3.pack(side=tk.LEFT, padx=5)
 
     def checkbutton_event(self,widget):
         

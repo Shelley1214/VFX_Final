@@ -10,6 +10,9 @@ class Merge_GUI():
     def __init__(self, title = "Image Loader"):
         
         self.master = tk.Tk()
+        style = ttk.Style(self.master)
+        self.master.call('source', 'azure.tcl')
+        self.master.tk.call("set_theme", "dark")
 
         self.master.withdraw()
         self.master.title(title)
@@ -35,7 +38,7 @@ class Merge_GUI():
         self.master.update()
         self.master.resizable(True, True)
         self.master.deiconify()
-        self.master.geometry('{0}x{1}+0+0'.format(self.master.winfo_screenwidth(), self.master.winfo_screenheight()))
+        self.master.geometry('{0}x{1}+0+0'.format(self.master.winfo_screenwidth(), self.master.winfo_screenheight()-200))
 
         # self.tabControl.bind("<ButtonRelease-1>", self.TabChanged)
         # def TabChanged(self,event=None):
