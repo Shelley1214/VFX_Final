@@ -17,12 +17,18 @@
 
 ## How to run
 
-* We use OpenMP to speed up the program. To compile the cpp file, navigate to ```code``` directory and run ```make``` 
-  or:
-  ```
-  g++ mvc.cpp -fopenmp -fPIC -shared -o mvc.so
-  ```
-    
+* We use OpenMP to speed up the program. To compile the cpp file, navigate to ```code``` directory and:
+  
+  * On Mac, run:
+    ```
+    g++-11 mvc.cpp -fopenmp -fPIC -shared -o mvc.so
+    ``` 
+  
+  * On Ubuntu, run:
+    ```
+    g++ mvc.cpp -fopenmp -fPIC -shared -o mvc.so
+    ```
+
   Python file can then call C++ code with ctypes module:
    
     ```
