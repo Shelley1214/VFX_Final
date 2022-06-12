@@ -1,7 +1,7 @@
 import ctypes 
 import numpy as np
 
-handle = ctypes.CDLL( "mvc.so")
+handle = ctypes.CDLL( "./mvc.so")
 handle.MVC_Function.argtypes = [ctypes.POINTER((ctypes.c_int)), (ctypes.POINTER(ctypes.c_int)), ctypes.POINTER(ctypes.c_double), ctypes.c_int, ctypes.c_int, ctypes.c_int]
 handle.MVC_Function.restype =  ctypes.POINTER(ctypes.c_double)
 handle.dealloc.argtypes = [ctypes.POINTER(ctypes.c_double)]
